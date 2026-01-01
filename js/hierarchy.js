@@ -1,4 +1,4 @@
-// hierarchy.js - MEMORY HIERARCHY SIMULATOR - FIXED VERSION
+// hierarchy.js - Material Design 3 Version (No Tailwind)
 
 // --- KONSTANTA SIMULASI ---
 const REGISTER_COUNT = 16;
@@ -15,6 +15,15 @@ const ACCESS_TIME = {
     l3_cache: 10,
     ram: 100,
     disk: 10000000
+};
+
+// Colors for each level
+const LEVEL_COLORS = {
+    register: { free: '#333538', active: '#BA68C8', border: '#44464E', activeBorder: '#9C27B0' },
+    l1Cache: { free: '#333538', active: '#64B5F6', border: '#44464E', activeBorder: '#1976D2' },
+    l2Cache: { free: '#333538', active: '#4DD0E1', border: '#44464E', activeBorder: '#00ACC1' },
+    ram: { free: '#333538', active: '#81C784', border: '#44464E', activeBorder: '#388E3C' },
+    disk: { free: '#333538', active: '#FFD54F', border: '#44464E', activeBorder: '#F57C00' }
 };
 
 // --- STATUS SIMULASI GLOBAL ---
@@ -38,28 +47,28 @@ let stats = {
  */
 function showNotification(message) {
     document.getElementById('notification-message').innerText = message;
-    document.getElementById('custom-notification').classList.remove('hidden');
+    document.getElementById('custom-notification').classList.add('active');
 }
 
 /**
  * Hide notification
  */
 function hideNotification() {
-    document.getElementById('custom-notification').classList.add('hidden');
+    document.getElementById('custom-notification').classList.remove('active');
 }
 
 /**
  * Open info modal
  */
 function openInfoModal() {
-    document.getElementById('info-modal').classList.remove('hidden');
+    document.getElementById('info-modal').classList.add('active');
 }
 
 /**
  * Close info modal
  */
 function closeInfoModal() {
-    document.getElementById('info-modal').classList.add('hidden');
+    document.getElementById('info-modal').classList.remove('active');
 }
 
 /**
@@ -112,74 +121,104 @@ function renderAllLevels() {
 }
 
 /**
- * Render Register level - FIXED
+ * Create a styled memory cell
+ */
+function createMemoryCell(id, status, colors, label = null, size = 'normal') {
+    const cell = document.createElement('div');
+
+    const isActive = status === 'active';
+    const bgColor = isActive ? colors.active : colors.free;
+    const borderColor = isActive ? colors.activeBorder : colors.border;
+
+    cell.style.cssText = `
+        aspect-ratio: 1;
+        border-radius: 8px;
+        border: 2px solid ${borderColor};
+        background-color: ${bgColor};
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: ${size === 'small' ? '10px' : '12px'};
+        font-weight: 600;
+        color: ${isActive ? '#fff' : '#8E9099'};
+        cursor: pointer;
+        transition: all 0.2s ease;
+        ${isActive ? `box-shadow: 0 0 12px ${colors.active}80;` : ''}
+    `;
+
+    cell.onmouseenter = () => { cell.style.transform = 'scale(1.1)'; cell.style.zIndex = '10'; };
+    cell.onmouseleave = () => { cell.style.transform = 'scale(1)'; cell.style.zIndex = '1'; };
+
+    if (label !== null) {
+        cell.innerHTML = `<span>${label}</span>`;
+    }
+
+    cell.title = `${id} | ${status}`;
+
+    return cell;
+}
+
+/**
+ * Render Register level
  */
 function renderRegisters() {
     const container = document.getElementById('register-grid');
+    if (!container) return;
     container.innerHTML = '';
 
     memoryHierarchy.registers.forEach((reg) => {
-        const cell = document.createElement('div');
-        cell.className = 'memory-cell aspect-square rounded-lg border-2 flex flex-col items-center justify-center text-xs font-bold cursor-pointer transition-all';
-
-        if (reg.status === 'free') {
-            cell.className += ' bg-gray-700/50 border-gray-600 text-gray-400';
-        } else if (reg.status === 'active') {
-            cell.className += ' bg-purple-500 border-purple-400 text-white shadow-lg shadow-purple-500/50';
-        } else {
-            cell.className += ' bg-purple-500/50 border-purple-500/50 text-white';
-        }
-
-        cell.innerHTML = `<span class="text-[10px]">R${reg.id}</span>`;
-        cell.title = `Register ${reg.id} | ${reg.status}`;
+        const cell = createMemoryCell(
+            `Register ${reg.id}`,
+            reg.status,
+            LEVEL_COLORS.register,
+            `R${reg.id}`
+        );
         container.appendChild(cell);
     });
 }
 
 /**
- * Render L1 Cache - FIXED
+ * Render L1 Cache
  */
 function renderL1Cache() {
     const container = document.getElementById('l1-cache-grid');
+    if (!container) return;
     container.innerHTML = '';
 
     memoryHierarchy.l1Cache.forEach((block) => {
-        const cell = document.createElement('div');
-        cell.className = 'memory-cell w-6 h-6 rounded border-2 transition-all cursor-pointer flex items-center justify-center';
-
-        if (block.status === 'free') {
-            cell.className += ' bg-gray-700 border-gray-600';
-        } else if (block.status === 'active') {
-            cell.className += ' bg-blue-500 border-blue-400 shadow-lg shadow-blue-500/50';
-        } else {
-            cell.className += ' bg-blue-500/50 border-blue-500/50';
-        }
-
-        cell.title = `L1 Block ${block.id} | ${block.status}`;
+        const cell = createMemoryCell(
+            `L1 Block ${block.id}`,
+            block.status,
+            LEVEL_COLORS.l1Cache,
+            null,
+            'small'
+        );
+        cell.style.aspectRatio = '1';
+        cell.style.minWidth = '20px';
+        cell.style.minHeight = '20px';
         container.appendChild(cell);
     });
 }
 
 /**
- * Render L2 Cache - FIXED
+ * Render L2 Cache
  */
 function renderL2Cache() {
     const container = document.getElementById('l2-cache-grid');
+    if (!container) return;
     container.innerHTML = '';
 
     memoryHierarchy.l2Cache.forEach((block) => {
-        const cell = document.createElement('div');
-        cell.className = 'memory-cell w-6 h-6 rounded border-2 transition-all cursor-pointer flex items-center justify-center';
-
-        if (block.status === 'free') {
-            cell.className += ' bg-gray-700 border-gray-600';
-        } else if (block.status === 'active') {
-            cell.className += ' bg-cyan-500 border-cyan-400 shadow-lg shadow-cyan-500/50';
-        } else {
-            cell.className += ' bg-cyan-500/50 border-cyan-500/50';
-        }
-
-        cell.title = `L2 Block ${block.id} | ${block.status}`;
+        const cell = createMemoryCell(
+            `L2 Block ${block.id}`,
+            block.status,
+            LEVEL_COLORS.l2Cache,
+            null,
+            'small'
+        );
+        cell.style.aspectRatio = '1';
+        cell.style.minWidth = '20px';
+        cell.style.minHeight = '20px';
         container.appendChild(cell);
     });
 }
@@ -189,22 +228,16 @@ function renderL2Cache() {
  */
 function renderRAM() {
     const container = document.getElementById('ram-grid');
+    if (!container) return;
     container.innerHTML = '';
 
     memoryHierarchy.ram.forEach((block) => {
-        const cell = document.createElement('div');
-        cell.className = 'memory-cell aspect-square rounded-lg border-2 flex items-center justify-center text-xs font-bold cursor-pointer transition-all';
-
-        if (block.status === 'free') {
-            cell.className += ' bg-gray-700/50 border-gray-600 text-gray-400';
-        } else if (block.status === 'active') {
-            cell.className += ' bg-green-500 border-green-400 text-white shadow-lg shadow-green-500/50';
-        } else {
-            cell.className += ' bg-green-500/50 border-green-500/50 text-white/70';
-        }
-
-        cell.innerHTML = `<span>${block.id}</span>`;
-        cell.title = `RAM Block ${block.id} | ${block.status}`;
+        const cell = createMemoryCell(
+            `RAM Block ${block.id}`,
+            block.status,
+            LEVEL_COLORS.ram,
+            block.id
+        );
         container.appendChild(cell);
     });
 }
@@ -214,28 +247,22 @@ function renderRAM() {
  */
 function renderDisk() {
     const container = document.getElementById('disk-grid');
+    if (!container) return;
     container.innerHTML = '';
 
     memoryHierarchy.disk.forEach((block) => {
-        const cell = document.createElement('div');
-        cell.className = 'memory-cell aspect-square rounded-lg border-2 flex items-center justify-center text-xs font-bold cursor-pointer transition-all';
-
-        if (block.status === 'free') {
-            cell.className += ' bg-gray-700/50 border-gray-600 text-gray-400';
-        } else if (block.status === 'active') {
-            cell.className += ' bg-yellow-500 border-yellow-400 text-white shadow-lg shadow-yellow-500/50';
-        } else {
-            cell.className += ' bg-yellow-500/50 border-yellow-500/50 text-white/70';
-        }
-
-        cell.innerHTML = `<span>${block.id}</span>`;
-        cell.title = `Disk Block ${block.id} | ${block.status}`;
+        const cell = createMemoryCell(
+            `Disk Block ${block.id}`,
+            block.status,
+            LEVEL_COLORS.disk,
+            block.id
+        );
         container.appendChild(cell);
     });
 }
 
 /**
- * Simulate memory access - FIXED: NO AUTO-RESET
+ * Simulate memory access
  */
 async function simulateMemoryAccess() {
     const dataSize = parseInt(document.getElementById('data-size').value);
@@ -264,7 +291,6 @@ async function simulateMemoryAccess() {
     } else if (startLevel === 'cache') {
         // Check cache levels
         await highlightLevel('register', 500);
-        await highlightArrow('arrow-1', 500);
         await highlightLevel('cache', 1500);
 
         // Random cache hit/miss (80% hit rate)
@@ -275,7 +301,6 @@ async function simulateMemoryAccess() {
             showNotification(`✅ Cache Hit! Data ditemukan di L1 Cache. Access time: ${accessTime.toFixed(2)} ns`);
         } else {
             // Cache miss - go to RAM
-            await highlightArrow('arrow-2', 500);
             await highlightLevel('ram', 1500);
             accessTime = ACCESS_TIME.ram;
             stats.cacheMisses++;
@@ -285,9 +310,7 @@ async function simulateMemoryAccess() {
     } else if (startLevel === 'ram') {
         // Access from RAM (cold start)
         await highlightLevel('register', 300);
-        await highlightArrow('arrow-1', 300);
         await highlightLevel('cache', 500);
-        await highlightArrow('arrow-2', 500);
         await highlightLevel('ram', 1500);
         accessTime = ACCESS_TIME.ram;
         stats.cacheMisses++;
@@ -296,11 +319,8 @@ async function simulateMemoryAccess() {
     } else if (startLevel === 'disk') {
         // Full hierarchy traversal - slowest (page fault)
         await highlightLevel('register', 300);
-        await highlightArrow('arrow-1', 300);
         await highlightLevel('cache', 500);
-        await highlightArrow('arrow-2', 500);
         await highlightLevel('ram', 800);
-        await highlightArrow('arrow-3', 800);
         await highlightLevel('disk', 2000);
         accessTime = ACCESS_TIME.disk;
         stats.cacheMisses++;
@@ -309,9 +329,6 @@ async function simulateMemoryAccess() {
 
     stats.totalAccessTime += accessTime;
     updateStats();
-
-    // NO AUTO-RESET - user can see the result!
-    // User must manually click Reset button
 }
 
 /**
@@ -346,29 +363,6 @@ async function highlightLevel(level, duration) {
 }
 
 /**
- * Highlight arrow with animation
- */
-async function highlightArrow(arrowId, duration) {
-    const arrow = document.getElementById(arrowId);
-    if (arrow) {
-        const icon = arrow.querySelector('i');
-        const text = arrow.querySelector('p');
-
-        // Add highlight classes
-        icon.classList.add('animate-data-flow', 'text-white');
-        text.classList.add('text-white', 'font-bold');
-
-        // Remove highlight after duration
-        setTimeout(() => {
-            icon.classList.remove('animate-data-flow', 'text-white');
-            text.classList.remove('text-white', 'font-bold');
-        }, duration);
-    }
-
-    return new Promise(resolve => setTimeout(resolve, duration));
-}
-
-/**
  * Reset all active states
  */
 function resetActiveStates() {
@@ -383,14 +377,20 @@ function resetActiveStates() {
  * Update statistics display
  */
 function updateStats() {
-    document.getElementById('total-accesses').textContent = stats.totalAccesses;
-    document.getElementById('cache-hits').textContent = stats.cacheHits;
-    document.getElementById('cache-misses').textContent = stats.cacheMisses;
+    const totalAccessEl = document.getElementById('total-accesses');
+    const cacheHitsEl = document.getElementById('cache-hits');
+    const cacheMissesEl = document.getElementById('cache-misses');
+    const hitRateEl = document.getElementById('hit-rate');
+    const avgTimeEl = document.getElementById('avg-time');
+
+    if (totalAccessEl) totalAccessEl.textContent = stats.totalAccesses;
+    if (cacheHitsEl) cacheHitsEl.textContent = stats.cacheHits;
+    if (cacheMissesEl) cacheMissesEl.textContent = stats.cacheMisses;
 
     const hitRate = stats.totalAccesses > 0
         ? ((stats.cacheHits / stats.totalAccesses) * 100).toFixed(1)
         : 0;
-    document.getElementById('hit-rate').textContent = `${hitRate}%`;
+    if (hitRateEl) hitRateEl.textContent = `${hitRate}%`;
 
     const avgTime = stats.totalAccesses > 0
         ? (stats.totalAccessTime / stats.totalAccesses).toFixed(2)
@@ -406,7 +406,7 @@ function updateStats() {
         timeDisplay = `${(avgTime / 1000000).toFixed(2)} ms`;
     }
 
-    document.getElementById('avg-time').textContent = timeDisplay;
+    if (avgTimeEl) avgTimeEl.textContent = timeDisplay;
 }
 
 /**
