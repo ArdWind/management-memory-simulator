@@ -1,419 +1,400 @@
-// memory-leak.js - MEMORY LEAK DETECTOR SIMULATOR
+// memory-leak.js
 
 // --- CONSTANTS ---
-const TOTAL_MEMORY = 1024; // 1024 MB
-const TOTAL_BLOCKS = 256; // 256 blocks (each 4 MB)
-const CHART_MAX_POINTS = 30;
+const TOTAL_MEMORY_KB = 256;
+const BLOCK_SIZE_KB = 4;
+const TOTAL_BLOCKS = 64; // 256 / 4 = 64 blocks
+const CHART_MAX_POINTS = 20;
 
-// --- STATE ---
-let usedMemory = 0;
+// Block states: 0 = free, 1 = allocated, 2 = leaked
 let memoryBlocks = [];
-let simulationInterval = null;
-let isRunning = false;
+let usedMemory = 0;
+let leakedMemory = 0;
+let leakCount = 0;
 let timeElapsed = 0;
-let leakRate = 0;
-let chartData = [];
-let memoryChart = null;
+let chartData = { labels: [], data: [] };
+
+// Colors
+const COLORS = {
+    free: '#333538',
+    freeBorder: '#44464E',
+    allocated: '#81C784',
+    allocatedBorder: '#388E3C',
+    leaked: '#EF5350',
+    leakedBorder: '#C62828'
+};
 
 /**
- * Initialize
+ * Initialize application
  */
 function initialize() {
-    // Initialize memory blocks
-    memoryBlocks = Array(TOTAL_BLOCKS).fill(0); // 0 = free, 1 = allocated
+    memoryBlocks = Array(TOTAL_BLOCKS).fill(0);
+    usedMemory = 0;
+    leakedMemory = 0;
+    leakCount = 0;
+    timeElapsed = 0;
+    chartData = { labels: [], data: [] };
 
-    // Initialize chart
-    initializeChart();
-
-    // Render blocks
     renderMemoryBlocks();
     updateStats();
+    renderChart();
+    addAlert('info', 'Simulator ready. Click "Allocate Memory" to start.');
 }
 
 /**
- * Initialize Chart.js
- */
-function initializeChart() {
-    const ctx = document.getElementById('memoryChart').getContext('2d');
-
-    memoryChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Used Memory (MB)',
-                data: [],
-                borderColor: '#f59e0b',
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#fff'
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    ticks: { color: '#fff' },
-                    grid: { color: 'rgba(255,255,255,0.1)' }
-                },
-                y: {
-                    beginAtZero: true,
-                    max: TOTAL_MEMORY,
-                    ticks: { color: '#fff' },
-                    grid: { color: 'rgba(255,255,255,0.1)' }
-                }
-            }
-        }
-    });
-}
-
-/**
- * Render memory blocks grid
+ * Render memory blocks grid with inline styles
  */
 function renderMemoryBlocks() {
     const container = document.getElementById('memory-blocks');
+    if (!container) return;
     container.innerHTML = '';
 
-    memoryBlocks.forEach((block, index) => {
+    memoryBlocks.forEach((state, index) => {
         const div = document.createElement('div');
-        div.className = 'memory-block w-6 h-6 rounded border-2 transition-all cursor-pointer';
 
-        if (block === 0) {
-            // Free
-            div.className += ' bg-gray-700 border-gray-600';
+        let bgColor, borderColor;
+        if (state === 0) {
+            bgColor = COLORS.free;
+            borderColor = COLORS.freeBorder;
+        } else if (state === 1) {
+            bgColor = COLORS.allocated;
+            borderColor = COLORS.allocatedBorder;
         } else {
-            // Allocated
-            div.className += ' bg-orange-500 border-orange-400';
+            bgColor = COLORS.leaked;
+            borderColor = COLORS.leakedBorder;
         }
 
-        div.title = `Block ${index} | ${block === 0 ? 'Free' : 'Allocated'}`;
+        div.style.cssText = `
+            aspect-ratio: 1;
+            border-radius: 6px;
+            border: 2px solid ${borderColor};
+            background-color: ${bgColor};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            ${state === 2 ? 'animation: pulse 1s infinite;' : ''}
+        `;
+
+        div.onmouseenter = () => { div.style.transform = 'scale(1.15)'; div.style.zIndex = '10'; };
+        div.onmouseleave = () => { div.style.transform = 'scale(1)'; div.style.zIndex = '1'; };
+
+        const stateText = state === 0 ? 'Free' : (state === 1 ? 'Allocated' : 'Leaked');
+        div.title = `Block ${index} (${BLOCK_SIZE_KB} KB) | ${stateText}`;
+
         container.appendChild(div);
     });
 }
 
 /**
- * Start simulation
+ * Allocate memory - allocate random blocks
  */
-function startSimulation() {
-    if (isRunning) {
-        showNotification('⚠️ Simulasi sudah berjalan!', 'warning');
+function allocateMemory() {
+    const freeBlocks = memoryBlocks.map((s, i) => s === 0 ? i : -1).filter(i => i >= 0);
+
+    if (freeBlocks.length === 0) {
+        showNotification('⚠️ Tidak ada blok memori yang tersedia!');
+        addAlert('error', 'Memory full! Cannot allocate more blocks.');
         return;
     }
 
-    const scenario = document.getElementById('scenario').value;
+    // Allocate 1-5 random blocks
+    const toAllocate = Math.min(Math.floor(Math.random() * 5) + 1, freeBlocks.length);
 
-    isRunning = true;
-    timeElapsed = 0;
-
-    // Set leak rate based on scenario
-    switch(scenario) {
-        case 'normal':
-            leakRate = 0; // No leak
-            showNotification('✅ Simulasi dimulai: Normal Usage (No Leak)', 'success');
-            break;
-        case 'slow-leak':
-            leakRate = 2; // 2 MB/s
-            showNotification('⚠️ Simulasi dimulai: Slow Memory Leak (2 MB/s)', 'warning');
-            break;
-        case 'fast-leak':
-            leakRate = 5; // 5 MB/s
-            showNotification('⚠️ Simulasi dimulai: Fast Memory Leak (5 MB/s)', 'warning');
-            break;
-        case 'critical-leak':
-            leakRate = 10; // 10 MB/s
-            showNotification('🚨 Simulasi dimulai: Critical Memory Leak (10 MB/s)', 'danger');
-            break;
+    for (let i = 0; i < toAllocate; i++) {
+        const randomIdx = Math.floor(Math.random() * freeBlocks.length);
+        const blockIdx = freeBlocks.splice(randomIdx, 1)[0];
+        memoryBlocks[blockIdx] = 1;
+        usedMemory += BLOCK_SIZE_KB;
     }
 
-    // Start interval
-    simulationInterval = setInterval(() => {
-        updateMemoryUsage();
-        timeElapsed++;
-    }, 1000); // Update every 1 second
-}
-
-/**
- * Update memory usage
- */
-function updateMemoryUsage() {
-    // Simulate memory allocation
-    const normalUsage = Math.random() * 5; // Normal fluctuation 0-5 MB
-    const leakAmount = leakRate; // Leak per second
-
-    // Calculate new memory usage
-    let newUsed = usedMemory + normalUsage + leakAmount;
-
-    // Add some deallocation for normal scenario
-    if (leakRate === 0) {
-        const dealloc = Math.random() * 5;
-        newUsed = Math.max(100, newUsed - dealloc); // Keep minimum 100 MB
-    }
-
-    // Cap at total memory
-    newUsed = Math.min(TOTAL_MEMORY, newUsed);
-
-    usedMemory = newUsed;
-
-    // Update blocks
-    const blocksToAllocate = Math.floor((usedMemory / TOTAL_MEMORY) * TOTAL_BLOCKS);
-    for (let i = 0; i < TOTAL_BLOCKS; i++) {
-        memoryBlocks[i] = i < blocksToAllocate ? 1 : 0;
-    }
-
-    // Update chart
+    timeElapsed++;
     updateChart();
-
-    // Render
     renderMemoryBlocks();
     updateStats();
 
-    // Check for critical memory
-    checkMemoryStatus();
-
-    // Stop if memory full
-    if (usedMemory >= TOTAL_MEMORY - 10) {
-        stopSimulation();
-        showCriticalAlert();
-    }
+    addAlert('info', `✅ Allocated ${toAllocate * BLOCK_SIZE_KB} KB (${toAllocate} blocks)`);
+    showNotification(`✅ Berhasil mengalokasikan ${toAllocate * BLOCK_SIZE_KB} KB`);
 }
 
 /**
- * Update chart
+ * Simulate memory leak - convert allocated blocks to leaked
  */
-function updateChart() {
-    const label = `${timeElapsed}s`;
+function simulateLeak() {
+    const allocatedBlocks = memoryBlocks.map((s, i) => s === 1 ? i : -1).filter(i => i >= 0);
 
-    memoryChart.data.labels.push(label);
-    memoryChart.data.datasets[0].data.push(usedMemory.toFixed(2));
+    if (allocatedBlocks.length === 0) {
+        // If no allocated blocks, allocate some first then leak them
+        const freeBlocks = memoryBlocks.map((s, i) => s === 0 ? i : -1).filter(i => i >= 0);
+        if (freeBlocks.length < 3) {
+            showNotification('⚠️ Tidak cukup memori untuk disimulasikan!');
+            return;
+        }
 
-    // Keep only last 30 points
-    if (memoryChart.data.labels.length > CHART_MAX_POINTS) {
-        memoryChart.data.labels.shift();
-        memoryChart.data.datasets[0].data.shift();
-    }
-
-    memoryChart.update('none'); // Update without animation for performance
-}
-
-/**
- * Check memory status and show warnings
- */
-function checkMemoryStatus() {
-    const utilization = (usedMemory / TOTAL_MEMORY) * 100;
-    const alertDiv = document.getElementById('leak-alert');
-
-    if (utilization > 90) {
-        // Critical
-        alertDiv.className = 'glass rounded-2xl p-6 border-2 border-red-500 animate-slide-up leak-warning';
-        alertDiv.innerHTML = `
-            <div class="flex items-start gap-4">
-                <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-exclamation-triangle text-white text-xl"></i>
-                </div>
-                <div class="flex-1">
-                    <h4 class="text-xl font-bold text-red-300 mb-2">🚨 CRITICAL: Memory Almost Full!</h4>
-                    <p class="text-white/80 mb-3">
-                        Penggunaan memori mencapai <strong>${utilization.toFixed(1)}%</strong>.
-                        System akan crash jika tidak segera ditangani!
-                    </p>
-                    <div class="bg-white/10 rounded-lg p-3">
-                        <p class="text-white text-sm"><strong>Action Required:</strong></p>
-                        <ul class="text-sm text-white/70 mt-2 space-y-1">
-                            <li>• Hentikan proses yang bocor memori</li>
-                            <li>• Restart aplikasi yang bermasalah</li>
-                            <li>• Clear cache dan temporary files</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        `;
-    } else if (utilization > 70) {
-        // Warning
-        alertDiv.className = 'glass rounded-2xl p-6 border-2 border-yellow-500 animate-slide-up';
-        alertDiv.innerHTML = `
-            <div class="flex items-start gap-4">
-                <div class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-exclamation-circle text-white text-xl"></i>
-                </div>
-                <div class="flex-1">
-                    <h4 class="text-xl font-bold text-yellow-300 mb-2">⚠️ WARNING: High Memory Usage</h4>
-                    <p class="text-white/80">
-                        Penggunaan memori mencapai <strong>${utilization.toFixed(1)}%</strong>.
-                        Kemungkinan terjadi memory leak. Monitor terus penggunaan memori.
-                    </p>
-                </div>
-            </div>
-        `;
+        // Allocate and immediately leak 3 blocks
+        for (let i = 0; i < 3; i++) {
+            const randomIdx = Math.floor(Math.random() * freeBlocks.length);
+            const blockIdx = freeBlocks.splice(randomIdx, 1)[0];
+            memoryBlocks[blockIdx] = 2; // directly leaked
+            leakedMemory += BLOCK_SIZE_KB;
+            leakCount++;
+        }
     } else {
-        alertDiv.className = 'hidden';
+        // Convert 1-3 allocated blocks to leaked
+        const toConvert = Math.min(Math.floor(Math.random() * 3) + 1, allocatedBlocks.length);
+
+        for (let i = 0; i < toConvert; i++) {
+            const randomIdx = Math.floor(Math.random() * allocatedBlocks.length);
+            const blockIdx = allocatedBlocks.splice(randomIdx, 1)[0];
+            memoryBlocks[blockIdx] = 2; // leaked
+            leakedMemory += BLOCK_SIZE_KB;
+            leakCount++;
+        }
     }
+
+    timeElapsed++;
+    updateChart();
+    renderMemoryBlocks();
+    updateStats();
+
+    addAlert('error', `🐛 Memory leak detected! ${leakCount} leaks (${leakedMemory} KB total)`);
+    showNotification(`🐛 Memory leak terdeteksi! Total: ${leakedMemory} KB`);
 }
 
 /**
- * Show critical alert when memory full
+ * Garbage collect - free leaked memory
  */
-function showCriticalAlert() {
-    const alertDiv = document.getElementById('leak-alert');
-    alertDiv.className = 'glass rounded-2xl p-6 border-2 border-red-500 animate-slide-up';
-    alertDiv.innerHTML = `
-        <div class="flex items-start gap-4">
-            <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse-slow">
-                <i class="fas fa-bomb text-white text-2xl"></i>
-            </div>
-            <div class="flex-1">
-                <h4 class="text-2xl font-bold text-red-300 mb-2">💥 OUT OF MEMORY!</h4>
-                <p class="text-white/80 mb-4">
-                    Sistem kehabisan memori! Simulasi dihentikan. Ini adalah kondisi <strong>fatal</strong>
-                    yang akan menyebabkan system crash atau aplikasi force-closed.
-                </p>
-                <div class="bg-white/10 rounded-lg p-4">
-                    <h5 class="text-white font-semibold mb-2">Dampak di Real System:</h5>
-                    <ul class="text-sm text-white/70 space-y-1">
-                        <li>• <strong>OOMKiller:</strong> Linux akan kill proses yang paling banyak makan memori</li>
-                        <li>• <strong>System Freeze:</strong> Sistem bisa hang/freeze karena thrashing</li>
-                        <li>• <strong>Application Crash:</strong> Aplikasi akan crash dengan error "Out of Memory"</li>
-                        <li>• <strong>Data Loss:</strong> Kemungkinan kehilangan data yang belum di-save</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    `;
+function garbageCollect() {
+    let freedCount = 0;
+    let freedMemory = 0;
 
-    showNotification('💥 OUT OF MEMORY! Sistem kehabisan memori!', 'danger');
-}
+    memoryBlocks.forEach((state, idx) => {
+        if (state === 2) { // leaked
+            memoryBlocks[idx] = 0;
+            freedCount++;
+            freedMemory += BLOCK_SIZE_KB;
+            usedMemory = Math.max(0, usedMemory - BLOCK_SIZE_KB);
+        }
+    });
 
-/**
- * Stop simulation
- */
-function stopSimulation() {
-    if (!isRunning) return;
+    if (freedCount === 0) {
+        showNotification('ℹ️ Tidak ada memory leak untuk dibersihkan');
+        return;
+    }
 
-    clearInterval(simulationInterval);
-    isRunning = false;
+    leakedMemory = 0;
+    leakCount = 0;
 
-    showNotification('⏸️ Simulasi dihentikan', 'info');
+    timeElapsed++;
+    updateChart();
+    renderMemoryBlocks();
+    updateStats();
+
+    addAlert('info', `🧹 Garbage collected! Freed ${freedMemory} KB (${freedCount} blocks)`);
+    showNotification(`🧹 Berhasil membersihkan ${freedMemory} KB`);
 }
 
 /**
  * Reset simulation
  */
 function resetSimulation() {
-    stopSimulation();
-
-    usedMemory = 0;
-    timeElapsed = 0;
-    leakRate = 0;
-    memoryBlocks = Array(TOTAL_BLOCKS).fill(0);
-
-    // Reset chart
-    memoryChart.data.labels = [];
-    memoryChart.data.datasets[0].data = [];
-    memoryChart.update();
-
-    // Clear alert
-    document.getElementById('leak-alert').className = 'hidden';
-    document.getElementById('leak-alert').innerHTML = '';
-
-    renderMemoryBlocks();
-    updateStats();
-
-    showNotification('🔄 Simulasi di-reset', 'info');
+    initialize();
+    showNotification('🔄 Simulasi telah direset');
 }
 
 /**
  * Update statistics display
  */
 function updateStats() {
-    const freeMemory = TOTAL_MEMORY - usedMemory;
-    const utilization = (usedMemory / TOTAL_MEMORY) * 100;
+    const totalMemoryEl = document.getElementById('total-memory');
+    const usedMemoryEl = document.getElementById('used-memory');
+    const leakedMemoryEl = document.getElementById('leaked-memory');
+    const freeMemoryEl = document.getElementById('free-memory');
+    const leakCountEl = document.getElementById('leak-count');
 
-    document.getElementById('total-memory').textContent = `${TOTAL_MEMORY} MB`;
-    document.getElementById('used-memory').textContent = `${usedMemory.toFixed(2)} MB`;
-    document.getElementById('free-memory').textContent = `${freeMemory.toFixed(2)} MB`;
-    document.getElementById('utilization').textContent = `${utilization.toFixed(1)}%`;
-    document.getElementById('leak-rate').textContent = `${leakRate} MB/s`;
+    // Calculate actual used memory (allocated + leaked)
+    const allocatedCount = memoryBlocks.filter(s => s === 1).length;
+    const leakedCount = memoryBlocks.filter(s => s === 2).length;
+    const freeCount = memoryBlocks.filter(s => s === 0).length;
 
-    // Status
-    const statusEl = document.getElementById('leak-status');
-    if (utilization > 90) {
-        statusEl.textContent = 'CRITICAL!';
-        statusEl.className = 'font-semibold text-red-400 animate-pulse-slow';
-    } else if (utilization > 70) {
-        statusEl.textContent = 'Warning';
-        statusEl.className = 'font-semibold text-yellow-400';
-    } else if (leakRate > 0) {
-        statusEl.textContent = 'Leaking';
-        statusEl.className = 'font-semibold text-orange-400';
-    } else {
-        statusEl.textContent = 'Normal';
-        statusEl.className = 'font-semibold text-green-400';
+    const actualUsed = (allocatedCount + leakedCount) * BLOCK_SIZE_KB;
+    const actualLeaked = leakedCount * BLOCK_SIZE_KB;
+    const actualFree = freeCount * BLOCK_SIZE_KB;
+
+    if (totalMemoryEl) totalMemoryEl.textContent = `${TOTAL_MEMORY_KB} KB`;
+    if (usedMemoryEl) usedMemoryEl.textContent = `${actualUsed} KB`;
+    if (leakedMemoryEl) leakedMemoryEl.textContent = `${actualLeaked} KB`;
+    if (freeMemoryEl) freeMemoryEl.textContent = `${actualFree} KB`;
+    if (leakCountEl) leakCountEl.textContent = leakedCount.toString();
+}
+
+/**
+ * Render simple chart using canvas
+ */
+function renderChart() {
+    const canvas = document.getElementById('memory-chart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.parentElement.clientWidth - 48;
+    const height = 250;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    // Clear canvas
+    ctx.fillStyle = '#1D1B20';
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw grid lines
+    ctx.strokeStyle = '#44464E';
+    ctx.lineWidth = 1;
+
+    // Horizontal grid lines
+    for (let i = 0; i <= 4; i++) {
+        const y = (height / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(40, y);
+        ctx.lineTo(width - 10, y);
+        ctx.stroke();
+
+        // Y-axis labels
+        const label = TOTAL_MEMORY_KB - (TOTAL_MEMORY_KB / 4) * i;
+        ctx.fillStyle = '#8E9099';
+        ctx.font = '11px Roboto';
+        ctx.fillText(`${label}`, 5, y + 4);
     }
 
-    // Update free memory color
-    const freeEl = document.getElementById('free-memory');
-    if (freeMemory < 100) {
-        freeEl.className = 'font-semibold text-red-400';
-    } else if (freeMemory < 300) {
-        freeEl.className = 'font-semibold text-yellow-400';
-    } else {
-        freeEl.className = 'font-semibold text-green-400';
+    // Draw data if exists
+    if (chartData.data.length > 1) {
+        const dataPoints = chartData.data;
+        const xStep = (width - 50) / (CHART_MAX_POINTS - 1);
+
+        // Draw line
+        ctx.beginPath();
+        ctx.strokeStyle = '#FFB74D';
+        ctx.lineWidth = 2;
+
+        dataPoints.forEach((value, i) => {
+            const x = 40 + (i * xStep);
+            const y = height - (value / TOTAL_MEMORY_KB * height);
+
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        ctx.stroke();
+
+        // Draw points
+        dataPoints.forEach((value, i) => {
+            const x = 40 + (i * xStep);
+            const y = height - (value / TOTAL_MEMORY_KB * height);
+
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFB74D';
+            ctx.fill();
+        });
+    }
+
+    // Draw X-axis label
+    ctx.fillStyle = '#8E9099';
+    ctx.font = '11px Roboto';
+    ctx.fillText('Time →', width - 50, height - 5);
+}
+
+/**
+ * Update chart data
+ */
+function updateChart() {
+    const allocatedCount = memoryBlocks.filter(s => s === 1).length;
+    const leakedCount = memoryBlocks.filter(s => s === 2).length;
+    const usedKB = (allocatedCount + leakedCount) * BLOCK_SIZE_KB;
+
+    chartData.labels.push(`${timeElapsed}s`);
+    chartData.data.push(usedKB);
+
+    // Keep only last N points
+    if (chartData.data.length > CHART_MAX_POINTS) {
+        chartData.labels.shift();
+        chartData.data.shift();
+    }
+
+    renderChart();
+}
+
+/**
+ * Add alert to alerts container
+ */
+function addAlert(type, message) {
+    const container = document.getElementById('alerts-container');
+    if (!container) return;
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+    let iconClass, borderColor, iconColor;
+    switch (type) {
+        case 'error':
+            iconClass = 'fas fa-exclamation-triangle';
+            borderColor = '#EF5350';
+            iconColor = '#EF5350';
+            break;
+        case 'warning':
+            iconClass = 'fas fa-exclamation-circle';
+            borderColor = '#FFB74D';
+            iconColor = '#FFB74D';
+            break;
+        default:
+            iconClass = 'fas fa-info-circle';
+            borderColor = '#4FD8EB';
+            iconColor = '#4FD8EB';
+    }
+
+    const alertHTML = `
+        <div class="alert-item" style="border-left-color: ${borderColor};">
+            <i class="${iconClass}" style="color: ${iconColor};"></i>
+            <span class="alert-text">${message}</span>
+            <span class="alert-time">${timeStr}</span>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('afterbegin', alertHTML);
+
+    // Keep only last 5 alerts
+    while (container.children.length > 5) {
+        container.removeChild(container.lastChild);
     }
 }
 
 /**
- * Show notification
+ * Show notification modal
  */
-function showNotification(message, type = 'info') {
-    const iconDiv = document.getElementById('notification-icon');
-    const icon = iconDiv.querySelector('i');
-
-    if (type === 'danger') {
-        iconDiv.className = 'w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0';
-        icon.className = 'fas fa-exclamation-triangle text-red-500 text-xl';
-    } else if (type === 'success') {
-        iconDiv.className = 'w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0';
-        icon.className = 'fas fa-check-circle text-green-500 text-xl';
-    } else if (type === 'warning') {
-        iconDiv.className = 'w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0';
-        icon.className = 'fas fa-exclamation-circle text-yellow-500 text-xl';
-    } else {
-        iconDiv.className = 'w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0';
-        icon.className = 'fas fa-info-circle text-blue-500 text-xl';
-    }
-
-    document.getElementById('notification-message').innerText = message;
-    document.getElementById('custom-notification').classList.remove('hidden');
+function showNotification(message) {
+    const msgEl = document.getElementById('notification-message');
+    const modal = document.getElementById('custom-notification');
+    if (msgEl) msgEl.textContent = message;
+    if (modal) modal.classList.add('active');
 }
 
+/**
+ * Hide notification modal
+ */
 function hideNotification() {
-    document.getElementById('custom-notification').classList.add('hidden');
+    const modal = document.getElementById('custom-notification');
+    if (modal) modal.classList.remove('active');
 }
 
-function openInfoModal() {
-    document.getElementById('info-modal').classList.remove('hidden');
-}
-
-function closeInfoModal() {
-    document.getElementById('info-modal').classList.add('hidden');
-}
-
-// Initialize on load
+// Initialize on window load
 window.onload = initialize;
 
-// Expose functions
-window.startSimulation = startSimulation;
-window.stopSimulation = stopSimulation;
+// Expose functions to global scope
+window.allocateMemory = allocateMemory;
+window.simulateLeak = simulateLeak;
+window.garbageCollect = garbageCollect;
 window.resetSimulation = resetSimulation;
 window.showNotification = showNotification;
 window.hideNotification = hideNotification;
-window.openInfoModal = openInfoModal;
-window.closeInfoModal = closeInfoModal;
