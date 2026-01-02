@@ -305,12 +305,178 @@ function closeInfoModal() {
     if (modal) modal.classList.remove('active');
 }
 
+// ==========================================
+// SCENARIO SIMULATIONS
+// ==========================================
+
+const SCENARIOS = {
+    typing: {
+        name: 'Ketik Teks',
+        icon: '⌨️',
+        screen: `<div style="font-family: monospace; color: #0f0; font-size: 10px; text-align: left; padding: 8px;">
+            <div>📝 Word Document</div>
+            <div style="margin-top: 4px; color: #fff;">Hello World_</div>
+        </div>`,
+        levels: ['reg', 'cache'],
+        time: '~1 ns',
+        desc: 'Ketik keyboard → Register → Cache. Super cepat karena data kecil!'
+    },
+    gaming: {
+        name: 'Main Game',
+        icon: '🎮',
+        screen: `<div style="text-align: center;">
+            <div style="font-size: 16px;">🐦</div>
+            <div style="color: #4CAF50; font-size: 8px;">Flappy Bird</div>
+            <div style="margin-top: 2px; color: #888; font-size: 7px;">Score: 42</div>
+        </div>`,
+        levels: ['cache', 'ram', 'disk'],
+        time: '~100 ns - 10 ms',
+        desc: 'Game load dari Disk → RAM, lalu terus stream ke Cache saat bermain.'
+    },
+    openfile: {
+        name: 'Buka File',
+        icon: '📂',
+        screen: `<div style="text-align: center;">
+            <div style="font-size: 14px;">📄</div>
+            <div style="color: #64B5F6; font-size: 9px;">document.docx</div>
+            <div style="color: #888; font-size: 7px;">Loading...</div>
+        </div>`,
+        levels: ['disk', 'ram', 'cache'],
+        time: '~10 ms',
+        desc: 'File dibaca dari Disk → RAM → Cache. Lambat karena Disk!'
+    },
+    video: {
+        name: 'Edit Video',
+        icon: '🎬',
+        screen: `<div style="text-align: center;">
+            <div style="font-size: 12px;">🎥</div>
+            <div style="color: #FB8C00; font-size: 8px;">Premiere Pro</div>
+            <div style="background: #333; height: 8px; margin: 4px 8px; border-radius: 2px;">
+                <div style="background: #FB8C00; width: 60%; height: 100%; border-radius: 2px;"></div>
+            </div>
+        </div>`,
+        levels: ['disk', 'ram', 'cache', 'reg'],
+        time: '~100 ms+',
+        desc: 'Video besar: Disk ↔ RAM terus-menerus. Sangat berat!'
+    },
+    smalldata: {
+        name: 'Data Kecil',
+        icon: '📄',
+        screen: `<div style="text-align: center;">
+            <div style="font-size: 14px;">📋</div>
+            <div style="color: #00ACC1; font-size: 9px;">1 KB Data</div>
+            <div style="color: #4CAF50; font-size: 7px;">✓ Instan!</div>
+        </div>`,
+        levels: ['reg', 'cache'],
+        time: '<1 ns',
+        desc: 'Data kecil langsung di Register/Cache. Sangat cepat!'
+    },
+    bigdata: {
+        name: 'Data Besar',
+        icon: '💾',
+        screen: `<div style="text-align: center;">
+            <div style="font-size: 12px;">💿</div>
+            <div style="color: #E91E63; font-size: 9px;">5 GB Transfer</div>
+            <div style="background: #333; height: 6px; margin: 4px 8px; border-radius: 2px;">
+                <div style="background: #E91E63; width: 30%; height: 100%; border-radius: 2px; animation: loading 2s infinite;"></div>
+            </div>
+        </div>`,
+        levels: ['disk', 'ram'],
+        time: '~5 detik+',
+        desc: 'Copy file besar: Disk → RAM → Disk. Sangat lambat!'
+    }
+};
+
+let isSimulating = false;
+
+/**
+ * Run a scenario simulation
+ */
+async function runScenario(type) {
+    if (isSimulating) return;
+    isSimulating = true;
+
+    const scenario = SCENARIOS[type];
+    if (!scenario) return;
+
+    const screen = document.getElementById('pc-screen');
+    const status = document.getElementById('scenario-status');
+
+    // Reset all indicators
+    resetIndicators();
+
+    // Update screen with scenario visual
+    if (screen) {
+        screen.innerHTML = scenario.screen;
+    }
+
+    // Show loading status
+    if (status) {
+        status.innerHTML = `<span style="color: #4FD8EB; font-size: 10px;">⏳ Memproses ${scenario.name}...</span>`;
+    }
+
+    // Animate level indicators one by one
+    for (const level of scenario.levels) {
+        await highlightIndicator(level, 600);
+    }
+
+    // Show result
+    if (status) {
+        status.innerHTML = `
+            <div style="text-align: left; font-size: 9px; line-height: 1.4;">
+                <div style="color: #4CAF50; margin-bottom: 2px;">✅ ${scenario.name} selesai!</div>
+                <div style="color: #FFB74D;">⏱️ Waktu: ${scenario.time}</div>
+                <div style="color: #888; margin-top: 4px;">${scenario.desc}</div>
+            </div>
+        `;
+    }
+
+    isSimulating = false;
+}
+
+/**
+ * Highlight a level indicator
+ */
+async function highlightIndicator(level, duration) {
+    const colors = {
+        'reg': '#9C27B0',
+        'cache': '#2196F3',
+        'ram': '#43A047',
+        'disk': '#FB8C00'
+    };
+
+    const indicator = document.getElementById(`ind-${level}`);
+    if (indicator) {
+        indicator.style.background = colors[level] || '#666';
+        indicator.style.boxShadow = `0 0 10px ${colors[level]}`;
+        indicator.querySelector('div').style.color = '#fff';
+    }
+
+    return new Promise(resolve => setTimeout(resolve, duration));
+}
+
+/**
+ * Reset all indicators
+ */
+function resetIndicators() {
+    ['reg', 'cache', 'ram', 'disk'].forEach(level => {
+        const indicator = document.getElementById(`ind-${level}`);
+        if (indicator) {
+            indicator.style.background = '#333';
+            indicator.style.boxShadow = 'none';
+            indicator.querySelector('div').style.color = '#666';
+        }
+    });
+}
+
 // Initialize on load
 window.onload = initialize;
 
 // Expose functions
+window.runScenario = runScenario;
 window.resetSimulation = resetSimulation;
 window.showNotification = showNotification;
 window.hideNotification = hideNotification;
 window.openInfoModal = openInfoModal;
 window.closeInfoModal = closeInfoModal;
+

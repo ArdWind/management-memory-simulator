@@ -368,127 +368,136 @@
     <!-- Main Content -->
     <main class="main-container">
         <div class="sidebar-layout">
-            <!-- Sidebar - Speed Comparison & Computer Visual -->
+            <!-- Sidebar - Interactive Scenarios -->
             <aside>
-                <!-- Computer Visual -->
+                <!-- Interactive PC Visual -->
                 <div class="stats-panel" style="margin-bottom: 16px;">
-                    <h3 class="section-title"><i class="fas fa-desktop"></i> Lokasi di Komputer</h3>
+                    <h3 class="section-title"><i class="fas fa-desktop"></i> Simulasi Aktivitas</h3>
 
-                    <div style="padding: 16px; background: var(--md-surface-container-high); border-radius: 12px;">
-                        <!-- Desktop Computer Visual -->
+                    <div style="padding: 12px; background: var(--md-surface-container-high); border-radius: 12px;">
+                        <!-- Desktop Computer with Dynamic Screen -->
                         <div
-                            style="position: relative; padding: 20px; background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 12px; border: 2px solid #44464E;">
-                            <!-- Monitor -->
+                            style="position: relative; padding: 12px; background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 10px; border: 2px solid #44464E;">
+                            <!-- Monitor Frame -->
                             <div
-                                style="background: #2d2d44; border-radius: 8px; padding: 12px; margin-bottom: 8px; border: 2px solid #555;">
-                                <div
-                                    style="background: #0d0d15; border-radius: 4px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                                    <span style="color: #4FD8EB; font-size: 11px;">💻 Display Output</span>
+                                style="background: #2d2d44; border-radius: 6px; padding: 6px; margin-bottom: 6px; border: 2px solid #555;">
+                                <!-- Dynamic Screen -->
+                                <div id="pc-screen"
+                                    style="background: #0d0d15; border-radius: 4px; height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; font-size: 11px; transition: all 0.3s;">
+                                    <span style="color: #4FD8EB; font-size: 20px;">💻</span>
+                                    <span style="color: #888; font-size: 9px; margin-top: 4px;">Pilih skenario</span>
                                 </div>
                             </div>
-
-                            <!-- CPU Box -->
+                            <!-- Monitor Stand -->
                             <div
-                                style="background: linear-gradient(135deg, #7B1FA2, #9C27B0); border-radius: 8px; padding: 8px; margin-bottom: 6px; text-align: center;">
-                                <i class="fas fa-microchip" style="color: white; margin-right: 4px;"></i>
-                                <span style="color: white; font-size: 11px; font-weight: 600;">CPU + Register</span>
+                                style="width: 24px; height: 8px; background: #555; margin: 0 auto; border-radius: 0 0 3px 3px;">
+                            </div>
+                            <div
+                                style="width: 50px; height: 4px; background: #444; margin: 0 auto; border-radius: 2px;">
                             </div>
 
-                            <!-- Cache -->
+                            <!-- Level Indicators -->
                             <div
-                                style="background: linear-gradient(135deg, #1976D2, #2196F3); border-radius: 6px; padding: 6px; margin-bottom: 6px; text-align: center;">
-                                <i class="fas fa-bolt" style="color: white; margin-right: 4px;"></i>
-                                <span style="color: white; font-size: 10px; font-weight: 600;">Cache L1/L2</span>
+                                style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 10px;">
+                                <div id="ind-reg"
+                                    style="background: #333; border-radius: 3px; padding: 3px 2px; text-align: center; transition: all 0.3s;">
+                                    <div style="font-size: 7px; color: #666;">REG</div>
+                                </div>
+                                <div id="ind-cache"
+                                    style="background: #333; border-radius: 3px; padding: 3px 2px; text-align: center; transition: all 0.3s;">
+                                    <div style="font-size: 7px; color: #666;">CACHE</div>
+                                </div>
+                                <div id="ind-ram"
+                                    style="background: #333; border-radius: 3px; padding: 3px 2px; text-align: center; transition: all 0.3s;">
+                                    <div style="font-size: 7px; color: #666;">RAM</div>
+                                </div>
+                                <div id="ind-disk"
+                                    style="background: #333; border-radius: 3px; padding: 3px 2px; text-align: center; transition: all 0.3s;">
+                                    <div style="font-size: 7px; color: #666;">DISK</div>
+                                </div>
                             </div>
+                        </div>
 
-                            <!-- RAM -->
-                            <div
-                                style="background: linear-gradient(135deg, #2E7D32, #43A047); border-radius: 6px; padding: 8px; margin-bottom: 6px; text-align: center;">
-                                <i class="fas fa-memory" style="color: white; margin-right: 4px;"></i>
-                                <span style="color: white; font-size: 11px; font-weight: 600;">RAM (DDR4/DDR5)</span>
-                            </div>
+                        <!-- Scenario Buttons Grid -->
+                        <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                            <button onclick="runScenario('typing')"
+                                style="background: linear-gradient(135deg, #7B1FA2, #9C27B0); border: none; border-radius: 6px; padding: 8px 4px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <div style="color: white; font-size: 14px;">⌨️</div>
+                                <div style="color: white; font-size: 9px; font-weight: 600;">Ketik Teks</div>
+                            </button>
+                            <button onclick="runScenario('gaming')"
+                                style="background: linear-gradient(135deg, #1976D2, #2196F3); border: none; border-radius: 6px; padding: 8px 4px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <div style="color: white; font-size: 14px;">🎮</div>
+                                <div style="color: white; font-size: 9px; font-weight: 600;">Main Game</div>
+                            </button>
+                            <button onclick="runScenario('openfile')"
+                                style="background: linear-gradient(135deg, #2E7D32, #43A047); border: none; border-radius: 6px; padding: 8px 4px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <div style="color: white; font-size: 14px;">📂</div>
+                                <div style="color: white; font-size: 9px; font-weight: 600;">Buka File</div>
+                            </button>
+                            <button onclick="runScenario('video')"
+                                style="background: linear-gradient(135deg, #E65100, #FB8C00); border: none; border-radius: 6px; padding: 8px 4px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <div style="color: white; font-size: 14px;">🎬</div>
+                                <div style="color: white; font-size: 9px; font-weight: 600;">Edit Video</div>
+                            </button>
+                            <button onclick="runScenario('smalldata')"
+                                style="background: linear-gradient(135deg, #00838F, #00ACC1); border: none; border-radius: 6px; padding: 8px 4px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <div style="color: white; font-size: 14px;">📄</div>
+                                <div style="color: white; font-size: 9px; font-weight: 600;">Data Kecil</div>
+                            </button>
+                            <button onclick="runScenario('bigdata')"
+                                style="background: linear-gradient(135deg, #C2185B, #E91E63); border: none; border-radius: 6px; padding: 8px 4px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <div style="color: white; font-size: 14px;">💾</div>
+                                <div style="color: white; font-size: 9px; font-weight: 600;">Data Besar</div>
+                            </button>
+                        </div>
 
-                            <!-- Storage -->
-                            <div
-                                style="background: linear-gradient(135deg, #E65100, #FB8C00); border-radius: 6px; padding: 8px; text-align: center;">
-                                <i class="fas fa-hdd" style="color: white; margin-right: 4px;"></i>
-                                <span style="color: white; font-size: 11px; font-weight: 600;">SSD / HDD</span>
-                            </div>
+                        <!-- Status Display -->
+                        <div id="scenario-status"
+                            style="margin-top: 10px; padding: 8px; background: #1a1a2e; border-radius: 6px; text-align: center; min-height: 40px; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: #666; font-size: 10px;">Status: Siap</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Speed Comparison -->
+                <!-- Compact Speed Reference -->
                 <div class="stats-panel">
-                    <h3 class="section-title"><i class="fas fa-tachometer-alt"></i> Perbandingan Kecepatan</h3>
-
-                    <div style="padding: 16px; background: var(--md-surface-container-high); border-radius: 12px;">
-                        <!-- Register Speed -->
-                        <div style="margin-bottom: 16px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                <span style="color: #BA68C8; font-size: 12px; font-weight: 600;">Register</span>
-                                <span style="color: #BA68C8; font-size: 11px;">0.5 ns</span>
+                    <h3 class="section-title"><i class="fas fa-tachometer-alt"></i> Kecepatan Akses</h3>
+                    <div style="padding: 10px; background: var(--md-surface-container-high); border-radius: 10px;">
+                        <div style="display: grid; gap: 6px; font-size: 10px;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <div style="width: 8px; height: 8px; background: #BA68C8; border-radius: 2px;"></div>
+                                <span style="color: #BA68C8; flex: 1;">Register</span>
+                                <span style="color: #888;">0.5 ns 🚀</span>
                             </div>
-                            <div style="background: #333; border-radius: 4px; height: 20px; overflow: hidden;">
-                                <div
-                                    style="background: linear-gradient(90deg, #BA68C8, #9C27B0); width: 100%; height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
-                                    <span style="color: white; font-size: 9px; font-weight: bold;">🚀 SUPER
-                                        CEPAT!</span>
-                                </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <div style="width: 8px; height: 8px; background: #64B5F6; border-radius: 2px;"></div>
+                                <span style="color: #64B5F6; flex: 1;">Cache</span>
+                                <span style="color: #888;">1-3 ns ⚡</span>
                             </div>
-                        </div>
-
-                        <!-- Cache Speed -->
-                        <div style="margin-bottom: 16px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                <span style="color: #64B5F6; font-size: 12px; font-weight: 600;">Cache</span>
-                                <span style="color: #64B5F6; font-size: 11px;">1-3 ns</span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <div style="width: 8px; height: 8px; background: #81C784; border-radius: 2px;"></div>
+                                <span style="color: #81C784; flex: 1;">RAM</span>
+                                <span style="color: #888;">100 ns 💨</span>
                             </div>
-                            <div style="background: #333; border-radius: 4px; height: 20px; overflow: hidden;">
-                                <div
-                                    style="background: linear-gradient(90deg, #64B5F6, #1976D2); width: 85%; height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
-                                    <span style="color: white; font-size: 9px; font-weight: bold;">⚡ Sangat Cepat</span>
-                                </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <div style="width: 8px; height: 8px; background: #FFB74D; border-radius: 2px;"></div>
+                                <span style="color: #FFB74D; flex: 1;">Disk</span>
+                                <span style="color: #888;">10 ms 🐢</span>
                             </div>
                         </div>
-
-                        <!-- RAM Speed -->
-                        <div style="margin-bottom: 16px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                <span style="color: #81C784; font-size: 12px; font-weight: 600;">RAM</span>
-                                <span style="color: #81C784; font-size: 11px;">~100 ns</span>
-                            </div>
-                            <div style="background: #333; border-radius: 4px; height: 20px; overflow: hidden;">
-                                <div
-                                    style="background: linear-gradient(90deg, #81C784, #388E3C); width: 40%; height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
-                                    <span style="color: white; font-size: 9px; font-weight: bold;">💨 Cepat</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Disk Speed -->
-                        <div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                <span style="color: #FFB74D; font-size: 12px; font-weight: 600;">Disk</span>
-                                <span style="color: #FFB74D; font-size: 11px;">~10 ms</span>
-                            </div>
-                            <div style="background: #333; border-radius: 4px; height: 20px; overflow: hidden;">
-                                <div
-                                    style="background: linear-gradient(90deg, #FFB74D, #E65100); width: 5%; height: 100%; border-radius: 4px;">
-                                </div>
-                            </div>
-                            <p style="color: #FFB74D; font-size: 9px; margin-top: 4px; text-align: right;">🐢 20 juta ×
-                                lebih lambat dari Register!</p>
-                        </div>
-                    </div>
-
-                    <!-- Tip Box -->
-                    <div
-                        style="margin-top: 16px; padding: 12px; background: rgba(79, 216, 235, 0.1); border-left: 3px solid var(--md-primary); border-radius: 4px;">
-                        <p style="font-size: 11px; color: var(--md-primary); line-height: 1.5;">
-                            <i class="fas fa-mouse-pointer"></i> <strong>Klik sel memori</strong> untuk melihat detail
-                            data dan kecepatan aksesnya!
-                        </p>
                     </div>
                 </div>
             </aside>
