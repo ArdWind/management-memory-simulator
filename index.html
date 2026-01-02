@@ -1,445 +1,910 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memory Management Simulator | UTS Sistem Operasi</title>
+    <title>Memory Management Simulator | UAS Sistem Operasi</title>
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Custom Tailwind Config -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3498db',
-                        secondary: '#2ecc71',
-                        danger: '#e74c3c',
-                        warning: '#f1c40f',
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Google Fonts - Roboto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- MD3 Styles -->
+    <link rel="stylesheet" href="styles.css">
+
     <style>
-        /* Custom animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* Page-specific styles */
+        .hero {
+            padding: 80px 24px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--md-surface-container) 0%, var(--md-surface) 100%);
+            position: relative;
+            overflow: hidden;
+            min-height: 500px;
         }
 
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px);
+        /* Wavy Background Canvas */
+        .hero-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Floating Memory Blocks Animation */
+        .floating-blocks {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .memory-block {
+            position: absolute;
+            border-radius: 8px;
+            opacity: 0.15;
+            animation: floatBlock 20s ease-in-out infinite;
+        }
+
+        .memory-block:nth-child(1) {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4FD8EB, #00ACC1);
+            left: 10%;
+            top: 20%;
+            animation-delay: 0s;
+            animation-duration: 18s;
+        }
+
+        .memory-block:nth-child(2) {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #64B5F6, #1976D2);
+            left: 80%;
+            top: 15%;
+            animation-delay: -3s;
+            animation-duration: 22s;
+        }
+
+        .memory-block:nth-child(3) {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #81C784, #388E3C);
+            left: 70%;
+            top: 60%;
+            animation-delay: -6s;
+            animation-duration: 25s;
+        }
+
+        .memory-block:nth-child(4) {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #BA68C8, #7B1FA2);
+            left: 15%;
+            top: 70%;
+            animation-delay: -9s;
+            animation-duration: 20s;
+        }
+
+        .memory-block:nth-child(5) {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, #FFB74D, #F57C00);
+            left: 50%;
+            top: 10%;
+            animation-delay: -12s;
+            animation-duration: 23s;
+        }
+
+        .memory-block:nth-child(6) {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #EF5350, #C62828);
+            left: 90%;
+            top: 45%;
+            animation-delay: -15s;
+            animation-duration: 19s;
+        }
+
+        .memory-block:nth-child(7) {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4FD8EB, #00897B);
+            left: 5%;
+            top: 45%;
+            animation-delay: -4s;
+            animation-duration: 21s;
+        }
+
+        .memory-block:nth-child(8) {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #F48FB1, #C2185B);
+            left: 35%;
+            top: 75%;
+            animation-delay: -8s;
+            animation-duration: 24s;
+        }
+
+        @keyframes floatBlock {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg) scale(1);
             }
+
+            25% {
+                transform: translateY(-20px) rotate(5deg) scale(1.05);
+            }
+
             50% {
-                transform: translateY(-20px);
+                transform: translateY(-10px) rotate(-3deg) scale(0.95);
+            }
+
+            75% {
+                transform: translateY(-25px) rotate(3deg) scale(1.02);
             }
         }
 
-        .animate-fade-in-up {
-            animation: fadeInUp 0.6s ease-out forwards;
+        /* Data Flow Particles */
+        .data-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
         }
 
-        .animate-float {
-            animation: float 3s ease-in-out infinite;
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--md-primary);
+            border-radius: 50%;
+            opacity: 0;
+            animation: dataFlow 8s ease-in-out infinite;
         }
 
-        .card-hover {
-            transition: all 0.3s ease;
+        .particle:nth-child(1) {
+            left: 20%;
+            animation-delay: 0s;
         }
 
-        .card-hover:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        .particle:nth-child(2) {
+            left: 40%;
+            animation-delay: 1s;
         }
 
-        /* Glassmorphism effect */
-        .glass {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .particle:nth-child(3) {
+            left: 60%;
+            animation-delay: 2s;
         }
 
-        /* Gradient text */
-        .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .particle:nth-child(4) {
+            left: 80%;
+            animation-delay: 3s;
+        }
+
+        .particle:nth-child(5) {
+            left: 30%;
+            animation-delay: 4s;
+        }
+
+        .particle:nth-child(6) {
+            left: 50%;
+            animation-delay: 5s;
+        }
+
+        .particle:nth-child(7) {
+            left: 70%;
+            animation-delay: 6s;
+        }
+
+        .particle:nth-child(8) {
+            left: 10%;
+            animation-delay: 7s;
+        }
+
+        .particle:nth-child(9) {
+            left: 90%;
+            animation-delay: 0.5s;
+        }
+
+        .particle:nth-child(10) {
+            left: 25%;
+            animation-delay: 2.5s;
+        }
+
+        .particle:nth-child(11) {
+            left: 55%;
+            animation-delay: 4.5s;
+        }
+
+        .particle:nth-child(12) {
+            left: 75%;
+            animation-delay: 6.5s;
+        }
+
+        @keyframes dataFlow {
+            0% {
+                top: 100%;
+                opacity: 0;
+                transform: scale(0);
+            }
+
+            10% {
+                opacity: 0.6;
+                transform: scale(1);
+            }
+
+            90% {
+                opacity: 0.4;
+                transform: scale(1);
+            }
+
+            100% {
+                top: -5%;
+                opacity: 0;
+                transform: scale(0);
+            }
+        }
+
+        /* Glowing ring animation for hero icon */
+        .hero-icon {
+            position: relative;
+        }
+
+        .hero-icon::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border-radius: var(--md-radius-xl);
+            background: linear-gradient(135deg, rgba(79, 216, 235, 0.3), rgba(0, 172, 193, 0.1));
+            animation: glowPulse 3s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes glowPulse {
+
+            0%,
+            100% {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.8;
+                transform: scale(1.1);
+            }
+        }
+
+        /* Wave overlay gradient */
+        .wave-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(to top, var(--md-surface) 0%, transparent 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .hero-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background-color: var(--md-primary-container);
+            border-radius: var(--md-radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-icon i {
+            font-size: 36px;
+            color: var(--md-on-primary-container);
+        }
+
+        .hero-title {
+            font-size: 48px;
+            font-weight: 400;
+            color: var(--md-on-surface);
+            margin-bottom: 12px;
+        }
+
+        .hero-title span {
+            color: var(--md-primary);
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--md-on-surface-variant);
+            margin-bottom: 32px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-chips {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: var(--md-headline-medium);
+            font-weight: 400;
+            color: var(--md-on-surface);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            font-size: var(--md-body-large);
+            color: var(--md-on-surface-variant);
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        /* Simulation Cards Grid */
+        .sim-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            padding: 0 24px;
+            max-width: 1200px;
+            margin: 0 auto 48px;
+        }
+
+        @media (max-width: 1024px) {
+            .sim-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .sim-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-title {
+                font-size: 32px;
+            }
+        }
+
+        .sim-card {
+            background-color: var(--md-surface-container);
+            border-radius: var(--md-radius-lg);
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .sim-card:hover {
+            background-color: var(--md-surface-container-high);
+            border-color: var(--md-outline-variant);
+            transform: translateY(-4px);
+        }
+
+        .sim-card-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--md-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .sim-card-icon i {
+            font-size: 24px;
+            color: white;
+        }
+
+        .sim-card-icon.teal {
+            background: linear-gradient(135deg, #4FD8EB, #00ACC1);
+        }
+
+        .sim-card-icon.blue {
+            background: linear-gradient(135deg, #64B5F6, #1976D2);
+        }
+
+        .sim-card-icon.green {
+            background: linear-gradient(135deg, #81C784, #388E3C);
+        }
+
+        .sim-card-icon.red {
+            background: linear-gradient(135deg, #EF5350, #C62828);
+        }
+
+        .sim-card-icon.orange {
+            background: linear-gradient(135deg, #FFB74D, #F57C00);
+        }
+
+        .sim-card-icon.purple {
+            background: linear-gradient(135deg, #BA68C8, #7B1FA2);
+        }
+
+        .sim-card-title {
+            font-size: var(--md-title-large);
+            font-weight: 500;
+            color: var(--md-on-surface);
+            margin-bottom: 8px;
+        }
+
+        .sim-card-desc {
+            font-size: var(--md-body-medium);
+            color: var(--md-on-surface-variant);
+            margin-bottom: 16px;
+        }
+
+        .sim-card-features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .sim-card-features li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: var(--md-body-medium);
+            color: var(--md-on-surface-variant);
+            margin-bottom: 6px;
+        }
+
+        .sim-card-features li i {
+            color: var(--md-primary);
+            font-size: 12px;
+        }
+
+        .sim-card-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: var(--md-radius-full);
+            font-size: var(--md-label-large);
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .sim-card-btn.primary {
+            background-color: var(--md-primary);
+            color: var(--md-on-primary);
+        }
+
+        .sim-card-btn.primary:hover {
+            filter: brightness(1.1);
+        }
+
+        .sim-card-btn.tonal {
+            background-color: var(--md-surface-container-highest);
+            color: var(--md-primary);
+        }
+
+        .sim-card-btn.tonal:hover {
+            background-color: rgba(79, 216, 235, 0.15);
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 48px 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .feature-item {
+            text-align: center;
+            padding: 24px;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--md-radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 20px;
+        }
+
+        .feature-icon.teal {
+            background-color: var(--md-primary-container);
+            color: var(--md-on-primary-container);
+        }
+
+        .feature-icon.blue {
+            background-color: rgba(100, 181, 246, 0.2);
+            color: #64B5F6;
+        }
+
+        .feature-icon.green {
+            background-color: rgba(129, 199, 132, 0.2);
+            color: #81C784;
+        }
+
+        .feature-title {
+            font-size: var(--md-title-medium);
+            font-weight: 500;
+            color: var(--md-on-surface);
+            margin-bottom: 8px;
+        }
+
+        .feature-desc {
+            font-size: var(--md-body-medium);
+            color: var(--md-on-surface-variant);
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen overflow-x-hidden">
 
-<!-- Hero Section / Landing -->
-<section id="landing" class="min-h-screen flex items-center justify-center relative">
-    <!-- Animated background elements -->
-    <div class="absolute inset-0 overflow-hidden">
-        <div class="absolute w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style="top: 10%; left: 10%;"></div>
-        <div class="absolute w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style="top: 60%; right: 10%; animation-delay: 2s;"></div>
-        <div class="absolute w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style="bottom: 10%; left: 50%; animation-delay: 4s;"></div>
-    </div>
+<body>
 
-    <div class="relative z-10 text-center px-6 max-w-6xl mx-auto">
-        <!-- Logo/Icon -->
-        <div class="mb-8 animate-fade-in-up">
-            <div class="inline-block p-6 glass rounded-3xl">
-                <svg class="w-20 h-20 text-purple-300" viewBox="0 0 100 100" fill="currentColor">
-                    <!-- Memory hierarchy pyramid -->
-                    <rect x="40" y="10" width="20" height="8" rx="2"/>
-                    <rect x="30" y="22" width="40" height="12" rx="2"/>
-                    <rect x="20" y="38" width="60" height="18" rx="2"/>
-                    <rect x="10" y="60" width="80" height="30" rx="2"/>
-                </svg>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div>
+                <div class="navbar-title">Memory Management Simulator</div>
+                <div class="navbar-subtitle">UAS Sistem Operasi - Kelompok 2</div>
             </div>
+            <a href="how-it-works.html" class="btn btn-tonal">
+                <i class="fas fa-book-open"></i>
+                <span>Cara Kerja</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <!-- Wavy Background Canvas -->
+        <canvas id="wavyCanvas" class="hero-canvas"></canvas>
+
+        <!-- Floating Memory Blocks -->
+        <div class="floating-blocks">
+            <div class="memory-block"></div>
+            <div class="memory-block"></div>
+            <div class="memory-block"></div>
+            <div class="memory-block"></div>
+            <div class="memory-block"></div>
+            <div class="memory-block"></div>
+            <div class="memory-block"></div>
+            <div class="memory-block"></div>
         </div>
 
-        <!-- Title -->
-        <h1 class="text-5xl md:text-7xl font-bold text-white mb-4 animate-fade-in-up" style="animation-delay: 0.2s;">
-            Memory Management <span class="gradient-text">Simulator</span>
-        </h1>
-
-        <!-- Subtitle -->
-        <p class="text-xl md:text-2xl text-purple-200 mb-8 animate-fade-in-up" style="animation-delay: 0.4s;">
-            Visualisasi Interaktif Manajemen Memori & Process Management
-        </p>
-
-        <!-- Feature badges -->
-        <div class="flex flex-wrap justify-center gap-4 mb-12 animate-fade-in-up" style="animation-delay: 0.6s;">
-            <div class="glass px-4 py-2 rounded-full text-white flex items-center gap-2">
-                <i class="fas fa-memory text-purple-300"></i>
-                <span class="text-sm">Memory Management</span>
-            </div>
-            <div class="glass px-4 py-2 rounded-full text-white flex items-center gap-2">
-                <i class="fas fa-lock text-red-300"></i>
-                <span class="text-sm">Deadlock Detection</span>
-            </div>
-            <div class="glass px-4 py-2 rounded-full text-white flex items-center gap-2">
-                <i class="fas fa-exclamation-triangle text-yellow-300"></i>
-                <span class="text-sm">Memory Leak Analysis</span>
-            </div>
+        <!-- Data Flow Particles -->
+        <div class="data-particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
         </div>
 
-        <!-- CTA Button -->
-        <button onclick="scrollToDashboard()" class="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-lg font-semibold rounded-full hover:scale-105 transform transition shadow-2xl animate-fade-in-up" style="animation-delay: 0.8s;">
-            <i class="fas fa-rocket mr-2"></i>
-            Mulai Simulasi
-        </button>
-    </div>
-</section>
+        <!-- Wave Overlay -->
+        <div class="wave-overlay"></div>
 
-<!-- Dashboard / Menu Section -->
-<section id="dashboard" class="min-h-screen py-20 px-6 relative">
-    <div class="max-w-7xl mx-auto">
-        <!-- Section Title -->
-        <div class="text-center mb-16">
-            <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">
-                Pilih Simulasi
-            </h2>
-            <p class="text-purple-200 text-lg">
-                Eksplorasi konsep Memory Management & Process Synchronization
+        <!-- Hero Content -->
+        <div class="hero-content">
+            <div class="hero-icon">
+                <i class="fas fa-layer-group"></i>
+            </div>
+
+            <h1 class="hero-title">
+                Memory Management <span>Simulator</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                Visualisasi interaktif untuk memahami konsep Memory Management dan Process Synchronization dalam Sistem
+                Operasi
             </p>
-        </div>
 
-        <!-- Cards Grid - 3x2 layout (6 cards) -->
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-
-            <!-- Card 1: Memory Hierarchy -->
-            <div class="glass rounded-2xl p-8 card-hover cursor-pointer" onclick="window.location.href='hierarchy.html'">
-                <div class="mb-6">
-                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-4">
-                        <i class="fas fa-layer-group text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-white mb-2">
-                        Hierarki Memori
-                    </h3>
-                    <p class="text-purple-200 text-sm mb-4">
-                        4 Tingkat: Register → Cache → RAM → Storage
-                    </p>
+            <div class="hero-chips">
+                <div class="chip primary">
+                    <i class="fas fa-memory"></i>
+                    <span>Memory Allocation</span>
                 </div>
+                <div class="chip">
+                    <i class="fas fa-lock"></i>
+                    <span>Deadlock Detection</span>
+                </div>
+                <div class="chip">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Memory Leak</span>
+                </div>
+            </div>
 
-                <ul class="text-white/70 text-sm space-y-2 mb-6">
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Visualisasi transfer data antar level</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Cache hit/miss simulation</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Access time comparison</span>
-                    </li>
+            <a href="#simulations" class="btn btn-filled">
+                <i class="fas fa-play"></i>
+                Mulai Simulasi
+            </a>
+        </div>
+    </section>
+
+    <!-- Simulations Section -->
+    <section id="simulations" style="padding: 48px 0;">
+        <h2 class="section-title">Pilih Simulasi</h2>
+        <p class="section-subtitle">Eksplorasi berbagai konsep Memory Management</p>
+
+        <div class="sim-grid">
+            <!-- Card 1: Memory Hierarchy -->
+            <div class="sim-card" onclick="window.location.href='hierarchy.html'">
+                <div class="sim-card-icon teal">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <h3 class="sim-card-title">Hierarki Memori</h3>
+                <p class="sim-card-desc">Register → Cache → RAM → Disk</p>
+                <ul class="sim-card-features">
+                    <li><i class="fas fa-check"></i> Transfer data antar level</li>
+                    <li><i class="fas fa-check"></i> Cache hit/miss simulation</li>
+                    <li><i class="fas fa-check"></i> Access time comparison</li>
                 </ul>
-
-                <button class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg transition font-semibold">
-                    <i class="fas fa-play mr-2"></i>
+                <button class="sim-card-btn primary">
+                    <i class="fas fa-play"></i>
                     Mulai Simulasi
                 </button>
             </div>
 
             <!-- Card 2: Contiguous Allocation -->
-            <div class="glass rounded-2xl p-8 card-hover cursor-pointer" onclick="window.location.href='contiguous.html'">
-                <div class="mb-6">
-                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-4">
-                        <i class="fas fa-square text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-white mb-2">
-                        Contiguous Allocation
-                    </h3>
-                    <p class="text-purple-200 text-sm mb-4">
-                        Alokasi memori dalam blok berurutan
-                    </p>
+            <div class="sim-card" onclick="window.location.href='contiguous.html'">
+                <div class="sim-card-icon blue">
+                    <i class="fas fa-square"></i>
                 </div>
-
-                <ul class="text-white/70 text-sm space-y-2 mb-6">
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Fixed & Dynamic Partitioning</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>First-Fit Algorithm</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>External Fragmentation</span>
-                    </li>
+                <h3 class="sim-card-title">Contiguous Allocation</h3>
+                <p class="sim-card-desc">Alokasi memori dalam blok berurutan</p>
+                <ul class="sim-card-features">
+                    <li><i class="fas fa-check"></i> First-Fit, Best-Fit, Worst-Fit</li>
+                    <li><i class="fas fa-check"></i> External Fragmentation</li>
+                    <li><i class="fas fa-check"></i> Memory Compaction</li>
                 </ul>
-
-                <button class="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg transition font-semibold">
-                    <i class="fas fa-play mr-2"></i>
+                <button class="sim-card-btn primary">
+                    <i class="fas fa-play"></i>
                     Mulai Simulasi
                 </button>
             </div>
 
-            <!-- Card 3: Non-Contiguous Allocation -->
-            <div class="glass rounded-2xl p-8 card-hover cursor-pointer" onclick="window.location.href='noncontiguous.html'">
-                <div class="mb-6">
-                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mb-4">
-                        <i class="fas fa-th text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-white mb-2">
-                        Non-Contiguous (Paging)
-                    </h3>
-                    <p class="text-purple-200 text-sm mb-4">
-                        Alokasi memori tersebar dengan paging
-                    </p>
+            <!-- Card 3: Non-Contiguous (Paging) -->
+            <div class="sim-card" onclick="window.location.href='noncontiguous.html'">
+                <div class="sim-card-icon green">
+                    <i class="fas fa-th"></i>
                 </div>
-
-                <ul class="text-white/70 text-sm space-y-2 mb-6">
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Paging Mechanism</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Page Table Visualization</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Logical to Physical Address</span>
-                    </li>
+                <h3 class="sim-card-title">Paging (Non-Contiguous)</h3>
+                <p class="sim-card-desc">Alokasi memori dengan page/frame</p>
+                <ul class="sim-card-features">
+                    <li><i class="fas fa-check"></i> Page Table visualization</li>
+                    <li><i class="fas fa-check"></i> Logical → Physical address</li>
+                    <li><i class="fas fa-check"></i> Internal Fragmentation</li>
                 </ul>
-
-                <button class="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg transition font-semibold">
-                    <i class="fas fa-play mr-2"></i>
+                <button class="sim-card-btn primary">
+                    <i class="fas fa-play"></i>
                     Mulai Simulasi
                 </button>
             </div>
 
-            <!-- Card 4: Deadlock Simulator - NEW! -->
-            <div class="glass rounded-2xl p-8 card-hover cursor-pointer" onclick="window.location.href='deadlock.html'">
-                <div class="mb-6">
-                    <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl flex items-center justify-center mb-4">
-                        <i class="fas fa-lock text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-white mb-2">
-                        Deadlock Detection
-                    </h3>
-                    <p class="text-purple-200 text-sm mb-4">
-                        Simulasi deadlock & resource allocation
-                    </p>
+            <!-- Card 4: Deadlock -->
+            <div class="sim-card" onclick="window.location.href='deadlock.html'">
+                <div class="sim-card-icon red">
+                    <i class="fas fa-lock"></i>
                 </div>
-
-                <ul class="text-white/70 text-sm space-y-2 mb-6">
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Resource Allocation Graph</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Circular Wait Detection</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Banker's Algorithm Simulation</span>
-                    </li>
+                <h3 class="sim-card-title">Deadlock Detection</h3>
+                <p class="sim-card-desc">Resource Allocation Graph</p>
+                <ul class="sim-card-features">
+                    <li><i class="fas fa-check"></i> 4 kondisi deadlock</li>
+                    <li><i class="fas fa-check"></i> Circular wait detection</li>
+                    <li><i class="fas fa-check"></i> Safe/Unsafe state</li>
                 </ul>
-
-                <button class="w-full py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-lg transition font-semibold">
-                    <i class="fas fa-play mr-2"></i>
+                <button class="sim-card-btn primary">
+                    <i class="fas fa-play"></i>
                     Mulai Simulasi
                 </button>
             </div>
 
-            <!-- Card 5: Memory Leak Detector - NEW! -->
-            <div class="glass rounded-2xl p-8 card-hover cursor-pointer" onclick="window.location.href='memory-leak.html'">
-                <div class="mb-6">
-                    <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center mb-4">
-                        <i class="fas fa-exclamation-triangle text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-white mb-2">
-                        Memory Leak Detector
-                    </h3>
-                    <p class="text-purple-200 text-sm mb-4">
-                        Deteksi dan analisis kebocoran memori
-                    </p>
+            <!-- Card 5: Memory Leak -->
+            <div class="sim-card" onclick="window.location.href='memory-leak.html'">
+                <div class="sim-card-icon orange">
+                    <i class="fas fa-exclamation-triangle"></i>
                 </div>
-
-                <ul class="text-white/70 text-sm space-y-2 mb-6">
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Real-time Memory Monitor</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Leak Simulation & Detection</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Memory Usage Graph</span>
-                    </li>
+                <h3 class="sim-card-title">Memory Leak Detector</h3>
+                <p class="sim-card-desc">Analisis kebocoran memori</p>
+                <ul class="sim-card-features">
+                    <li><i class="fas fa-check"></i> Real-time memory monitor</li>
+                    <li><i class="fas fa-check"></i> Leak simulation</li>
+                    <li><i class="fas fa-check"></i> Memory usage graph</li>
                 </ul>
-
-                <button class="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white rounded-lg transition font-semibold">
-                    <i class="fas fa-play mr-2"></i>
+                <button class="sim-card-btn primary">
+                    <i class="fas fa-play"></i>
                     Mulai Simulasi
                 </button>
             </div>
 
             <!-- Card 6: How It Works -->
-            <div class="glass rounded-2xl p-8 card-hover cursor-pointer" onclick="window.location.href='how-it-works.html'">
-                <div class="mb-6">
-                    <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
-                        <i class="fas fa-lightbulb text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-white mb-2">
-                        Cara Kerja Memory
-                    </h3>
-                    <p class="text-purple-200 text-sm mb-4">
-                        Penjelasan sederhana dengan visualisasi
-                    </p>
+            <div class="sim-card" onclick="window.location.href='how-it-works.html'">
+                <div class="sim-card-icon purple">
+                    <i class="fas fa-lightbulb"></i>
                 </div>
-
-                <ul class="text-white/70 text-sm space-y-2 mb-6">
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Diagram komputer & memory system</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Step-by-step explanation</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
-                        <span>Analogi kehidupan sehari-hari</span>
-                    </li>
+                <h3 class="sim-card-title">Cara Kerja Memory</h3>
+                <p class="sim-card-desc">Penjelasan konsep dasar</p>
+                <ul class="sim-card-features">
+                    <li><i class="fas fa-check"></i> Diagram komputer</li>
+                    <li><i class="fas fa-check"></i> Step-by-step explanation</li>
+                    <li><i class="fas fa-check"></i> Analogi sehari-hari</li>
                 </ul>
-
-                <button class="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg transition font-semibold">
-                    <i class="fas fa-book-open mr-2"></i>
-                    Pelajari Cara Kerja
+                <button class="sim-card-btn tonal">
+                    <i class="fas fa-book-open"></i>
+                    Pelajari
                 </button>
             </div>
-
         </div>
+    </section>
 
-        <!-- Info Section -->
-        <div class="mt-20 grid md:grid-cols-3 gap-8">
-            <div class="text-center">
-                <div class="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-bolt text-purple-300 text-xl"></i>
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon teal">
+                    <i class="fas fa-bolt"></i>
                 </div>
-                <h4 class="text-white font-semibold mb-2">Real-time Simulation</h4>
-                <p class="text-purple-200 text-sm">Visualisasi interaktif dengan feedback langsung</p>
+                <h4 class="feature-title">Real-time Simulation</h4>
+                <p class="feature-desc">Visualisasi interaktif dengan feedback langsung</p>
             </div>
-            <div class="text-center">
-                <div class="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-graduation-cap text-blue-300 text-xl"></i>
+            <div class="feature-item">
+                <div class="feature-icon blue">
+                    <i class="fas fa-graduation-cap"></i>
                 </div>
-                <h4 class="text-white font-semibold mb-2">Educational</h4>
-                <p class="text-purple-200 text-sm">Dirancang untuk pembelajaran konsep OS</p>
+                <h4 class="feature-title">Educational</h4>
+                <p class="feature-desc">Dirancang untuk pembelajaran konsep OS</p>
             </div>
-            <div class="text-center">
-                <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-laptop-code text-green-300 text-xl"></i>
+            <div class="feature-item">
+                <div class="feature-icon green">
+                    <i class="fas fa-laptop-code"></i>
                 </div>
-                <h4 class="text-white font-semibold mb-2">Interactive</h4>
-                <p class="text-purple-200 text-sm">Kontrol penuh untuk eksplorasi berbagai skenario</p>
+                <h4 class="feature-title">Interactive</h4>
+                <p class="feature-desc">Kontrol penuh untuk eksplorasi skenario</p>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Footer -->
-<footer class="py-8 px-6 border-t border-white/10">
-    <div class="max-w-7xl mx-auto text-center text-white/50 text-sm">
-        <p class="mb-2">© 2025 Memory Management Simulator</p>
-        <p>Dibuat Untuk Menyelesaikan Ujian Tengah Semester - Sistem Operasi</p>
-        <p class="mt-4 text-white/30 text-xs">Powered by Kelompok 2 - Universitas Pelita Bangsa</p>
-    </div>
-</footer>
+    <footer class="footer">
+        <p>© 2025 Memory Management Simulator</p>
+        <p style="margin-top: 4px;">Dibuat Untuk Menyelesaikan Ujian Akhir Semester - Sistem Operasi</p>
+        <p style="margin-top: 8px; opacity: 0.7; font-size: 12px;">Kelompok 2 - Universitas Pelita Bangsa</p>
+    </footer>
 
-<!-- JavaScript -->
-<script>
-    // Smooth scroll to dashboard
-    function scrollToDashboard() {
-        document.getElementById('dashboard').scrollIntoView({
-            behavior: 'smooth'
-        });
-    }
+    <!-- Wavy Canvas Animation Script -->
+    <script>
+        (function () {
+            const canvas = document.getElementById('wavyCanvas');
+            if (!canvas) return;
 
-    // Fade in animations on scroll
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -100px 0px'
-    };
+            const ctx = canvas.getContext('2d');
+            let animationId;
+            let time = 0;
 
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
+            // Resize canvas to match hero section
+            function resizeCanvas() {
+                const hero = document.querySelector('.hero');
+                if (hero) {
+                    canvas.width = hero.offsetWidth;
+                    canvas.height = hero.offsetHeight;
+                }
             }
-        });
-    }, observerOptions);
 
-    // Observe all cards
-    document.addEventListener('DOMContentLoaded', () => {
-        const cards = document.querySelectorAll('.card-hover');
-        cards.forEach((card, index) => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            card.style.transition = `all 0.6s ease ${index * 0.1}s`;
-            observer.observe(card);
-        });
-    });
-</script>
+            // Wave parameters
+            const waves = [
+                { amplitude: 30, wavelength: 200, speed: 0.02, color: 'rgba(79, 216, 235, 0.08)', yOffset: 0.6 },
+                { amplitude: 25, wavelength: 300, speed: 0.015, color: 'rgba(100, 181, 246, 0.06)', yOffset: 0.65 },
+                { amplitude: 20, wavelength: 250, speed: 0.025, color: 'rgba(129, 199, 132, 0.05)', yOffset: 0.7 },
+                { amplitude: 35, wavelength: 350, speed: 0.01, color: 'rgba(186, 104, 200, 0.04)', yOffset: 0.55 }
+            ];
+
+            // Draw a single wave
+            function drawWave(wave, time) {
+                ctx.beginPath();
+                ctx.moveTo(0, canvas.height);
+
+                const baseY = canvas.height * wave.yOffset;
+
+                for (let x = 0; x <= canvas.width; x += 5) {
+                    const y = baseY +
+                        Math.sin((x / wave.wavelength) + (time * wave.speed * 60)) * wave.amplitude +
+                        Math.sin((x / (wave.wavelength * 0.7)) + (time * wave.speed * 40)) * (wave.amplitude * 0.5);
+
+                    if (x === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+
+                ctx.lineTo(canvas.width, canvas.height);
+                ctx.lineTo(0, canvas.height);
+                ctx.closePath();
+
+                ctx.fillStyle = wave.color;
+                ctx.fill();
+            }
+
+            // Animation loop
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw waves from back to front
+                waves.forEach(wave => {
+                    drawWave(wave, time);
+                });
+
+                time += 0.016; // ~60fps timing
+                animationId = requestAnimationFrame(animate);
+            }
+
+            // Initialize
+            resizeCanvas();
+            animate();
+
+            // Handle resize
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+            });
+
+            // Pause animation when not visible for performance
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    cancelAnimationFrame(animationId);
+                } else {
+                    animate();
+                }
+            });
+        })();
+    </script>
 
 </body>
+
 </html>

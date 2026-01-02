@@ -25,19 +25,19 @@ function showNotification(message, type = 'info') {
     }
 
     document.getElementById('notification-message').innerText = message;
-    document.getElementById('custom-notification').classList.remove('hidden');
+    document.getElementById('custom-notification').classList.add('active');
 }
 
 function hideNotification() {
-    document.getElementById('custom-notification').classList.add('hidden');
+    document.getElementById('custom-notification').classList.remove('active');
 }
 
 function openInfoModal() {
-    document.getElementById('info-modal').classList.remove('hidden');
+    document.getElementById('info-modal').classList.add('active');
 }
 
 function closeInfoModal() {
-    document.getElementById('info-modal').classList.add('hidden');
+    document.getElementById('info-modal').classList.remove('active');
 }
 
 /**
@@ -48,7 +48,7 @@ function runScenario() {
 
     resetSimulation();
 
-    switch(scenario) {
+    switch (scenario) {
         case 'no-deadlock':
             runNoDeadlockScenario();
             break;

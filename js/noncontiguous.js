@@ -1,4 +1,4 @@
-// noncontiguous.js - COMPLETE VERSION WITH TAILWIND SUPPORT
+// noncontiguous.js - Material Design 3 Version
 
 // --- KONSTANTA SIMULASI ---
 const TOTAL_MEMORY_KB = 256;
@@ -17,28 +17,28 @@ let nextProcessId = 1;
  */
 function showNotification(message) {
   document.getElementById('notification-message').innerText = message;
-  document.getElementById('custom-notification').classList.remove('hidden');
+  document.getElementById('custom-notification').classList.add('active');
 }
 
 /**
  * Menyembunyikan notifikasi pop-up.
  */
 function hideNotification() {
-  document.getElementById('custom-notification').classList.add('hidden');
+  document.getElementById('custom-notification').classList.remove('active');
 }
 
 /**
  * Open Auto Test Modal
  */
 function openAutoTestModal() {
-  document.getElementById('auto-test-modal').classList.remove('hidden');
+  document.getElementById('auto-test-modal').classList.add('active');
 }
 
 /**
  * Close Auto Test Modal
  */
 function closeAutoTestModal() {
-  document.getElementById('auto-test-modal').classList.add('hidden');
+  document.getElementById('auto-test-modal').classList.remove('active');
 }
 
 /**
@@ -148,14 +148,14 @@ function autoAddProcess(sizeKB, processId) {
 // Fungsi pembantu untuk pewarnaan
 function getColorForProcess(id) {
   const colors = [
-    '#3498db', // Blue
-    '#2ecc71', // Green
-    '#e74c3c', // Red
-    '#f1c40f', // Yellow
-    '#9b59b6', // Purple
-    '#1abc9c', // Turquoise
-    '#e67e22', // Orange
-    '#34495e', // Dark gray
+    '#4FC3F7', // Light Blue
+    '#81C784', // Green
+    '#FF8A65', // Orange
+    '#BA68C8', // Purple
+    '#FFD54F', // Yellow
+    '#4DD0E1', // Cyan
+    '#F48FB1', // Pink
+    '#AED581', // Light Green
   ];
   if (!id || id === 'P0') return colors[0];
   const index = parseInt(id.replace('P', '')) - 1;
@@ -190,7 +190,7 @@ function resetMemory() {
   showNotification('🔄 Memory telah direset ke kondisi awal!');
 
   // Clear translation result and page table
-  document.getElementById('translation-result').innerHTML = '<p class="text-white/50 text-center">Hasil translasi akan muncul di sini</p>';
+  document.getElementById('translation-result').innerHTML = 'Hasil translasi akan muncul di sini';
   document.getElementById('page-table').querySelector('tbody').innerHTML = '';
 }
 
@@ -332,16 +332,32 @@ function renderMemoryGrid() {
 
   physicalMemory.forEach((frame, index) => {
     const cell = document.createElement('div');
-    cell.className = 'grid-cell rounded-lg border-2 border-white/30 flex items-center justify-center text-sm font-bold cursor-pointer transition-all';
+    cell.className = 'memory-cell';
 
-    if (frame.status === 'free') {
-      cell.style.backgroundColor = '#4b5563'; // Gray
-      cell.innerHTML = `<span class="text-white/50">·</span>`;
-    } else {
-      const color = getColorForProcess(frame.processId);
-      cell.style.backgroundColor = color;
-      cell.innerHTML = `<span class="text-white drop-shadow-lg">${frame.processId.replace('P', '')}</span>`;
-      cell.classList.add('animate-pulse-slow');
+    const isAllocated = frame.status !== 'free';
+    const color = isAllocated ? getColorForProcess(frame.processId) : null;
+
+    cell.style.cssText = `
+      aspect-ratio: 1;
+      border-radius: 8px;
+      border: ${isAllocated ? '2px solid ' + color : '1px dashed #44464E'};
+      background-color: ${isAllocated ? color : '#333538'};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: ${isAllocated ? '#fff' : '#8E9099'};
+      cursor: pointer;
+      transition: all 0.15s ease;
+      ${isAllocated ? 'box-shadow: 0 2px 8px ' + color + '60;' : ''}
+    `;
+
+    cell.onmouseenter = () => { cell.style.transform = 'scale(1.1)'; cell.style.zIndex = '10'; };
+    cell.onmouseleave = () => { cell.style.transform = 'scale(1)'; cell.style.zIndex = '1'; };
+
+    if (isAllocated) {
+      cell.innerHTML = `<span>${frame.processId.replace('P', '')}</span>`;
     }
 
     // Tooltip
@@ -350,7 +366,6 @@ function renderMemoryGrid() {
     const tooltipText = frame.status === 'free'
       ? `Frame ${frame.frameId} [${row},${col}] | Free`
       : `Frame ${frame.frameId} [${row},${col}] | ${frame.processId} Page ${frame.pageId}`;
-    cell.setAttribute('data-tooltip', tooltipText);
     cell.title = tooltipText;
 
     gridContainer.appendChild(cell);
@@ -364,50 +379,44 @@ function renderMemoryGrid() {
  */
 function updateFragmentationInfo() {
   const fragmentationDiv = document.getElementById('fragmentation-info');
+  if (!fragmentationDiv) return;
 
   const totalFree = physicalMemory.filter(f => f.status === 'free').length;
   const totalUsed = N_FRAMES - totalFree;
   const utilization = ((totalUsed / N_FRAMES) * 100).toFixed(1);
 
+  const statStyle = 'display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #44464E;';
+  const labelStyle = 'color: #CAC4D0; font-size: 14px; display: flex; align-items: center; gap: 8px;';
+  const valueStyle = 'color: #E3E2E6; font-weight: 600; font-size: 16px;';
+
   fragmentationDiv.innerHTML = `
-    <div class="space-y-3">
-      <div class="flex items-center justify-between">
-        <span class="text-green-200 text-sm flex items-center gap-2">
-          <i class="fas fa-cube"></i>
-          Free Frames
-        </span>
-        <span class="text-white font-bold text-lg">${totalFree} / ${N_FRAMES}</span>
-      </div>
-      <div class="flex items-center justify-between">
-        <span class="text-green-200 text-sm flex items-center gap-2">
-          <i class="fas fa-cubes"></i>
-          Used Frames
-        </span>
-        <span class="text-white font-bold text-lg">${totalUsed} / ${N_FRAMES}</span>
-      </div>
-      <div class="flex items-center justify-between">
-        <span class="text-green-200 text-sm flex items-center gap-2">
-          <i class="fas fa-chart-pie"></i>
-          Utilization
-        </span>
-        <span class="text-white font-bold text-lg">${utilization}%</span>
-      </div>
-      ${totalFree === 0 ? `
-        <div class="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-          <p class="text-red-300 text-xs flex items-center gap-2">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span>Memory penuh! Tidak ada frame tersedia.</span>
-          </p>
-        </div>
-      ` : `
-        <div class="mt-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-          <p class="text-green-300 text-xs flex items-center gap-2">
-            <i class="fas fa-check-circle"></i>
-            <span>${totalFree} frames tersedia untuk alokasi baru.</span>
-          </p>
-        </div>
-      `}
+    <div style="${statStyle}">
+      <span style="${labelStyle}"><i class="fas fa-cube"></i> Free Frames</span>
+      <span style="${valueStyle}">${totalFree} / ${N_FRAMES}</span>
     </div>
+    <div style="${statStyle}">
+      <span style="${labelStyle}"><i class="fas fa-cubes"></i> Used Frames</span>
+      <span style="${valueStyle}">${totalUsed} / ${N_FRAMES}</span>
+    </div>
+    <div style="${statStyle} border-bottom: none;">
+      <span style="${labelStyle}"><i class="fas fa-chart-pie"></i> Utilization</span>
+      <span style="${valueStyle}">${utilization}%</span>
+    </div>
+    ${totalFree === 0 ? `
+      <div style="margin-top: 12px; padding: 12px; background: rgba(239, 83, 80, 0.1); border-left: 3px solid #EF5350; border-radius: 4px;">
+        <p style="color: #EF5350; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Memory penuh! Tidak ada frame tersedia.</span>
+        </p>
+      </div>
+    ` : `
+      <div style="margin-top: 12px; padding: 12px; background: rgba(129, 199, 132, 0.1); border-left: 3px solid #81C784; border-radius: 4px;">
+        <p style="color: #81C784; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-check-circle"></i>
+          <span>${totalFree} frames tersedia untuk alokasi baru.</span>
+        </p>
+      </div>
+    `}
   `;
 }
 
@@ -559,7 +568,7 @@ window.deallocateProcess = function (processId) {
   updateStats();
 
   document.getElementById('page-table').querySelector('tbody').innerHTML = '';
-  document.getElementById('translation-result').innerHTML = '<p class="text-white/50 text-center">Hasil translasi akan muncul di sini</p>';
+  document.getElementById('translation-result').innerHTML = 'Hasil translasi akan muncul di sini';
 
   showNotification(`✅ Proses ${processId} dihentikan! ${nPagesReleased} frames dibebaskan.`);
 };
