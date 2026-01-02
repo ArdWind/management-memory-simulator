@@ -98,22 +98,49 @@ Membantu mahasiswa memahami konsep-konsep abstract dalam sistem operasi melalui 
 ```
 management-memory-simulator/
 │
-├── index.html              # Halaman utama (Dashboard)
-├── contiguous.html         # Simulator Alokasi Kontinu
-├── noncontiguous.html      # Simulator Paging
-├── hierarchy.html          # Simulator Hierarki Memori
-├── deadlock.html           # Simulator Deadlock
-├── memory-leak.html        # Simulator Memory Leak
+├── index.html                  # Halaman utama (Dashboard)
 │
-├── styles.css              # Styling Material Design 3
+├── pages/                      # Halaman simulator
+│   ├── contiguous.html         # Simulator Alokasi Kontinu
+│   ├── noncontiguous.html      # Simulator Paging
+│   ├── hierarchy.html          # Simulator Hierarki Memori
+│   ├── deadlock.html           # Simulator Deadlock
+│   ├── memory-leak.html        # Simulator Memory Leak
+│   └── how-it-works.html       # Penjelasan Cara Kerja
 │
-└── js/
-    ├── contiguous.js       # Logic alokasi kontinu
-    ├── noncontiguous.js    # Logic paging
-    ├── hierarchy.js        # Logic hierarki memori
-    ├── deadlock.js         # Logic deadlock
-    └── memory-leak.js      # Logic memory leak
+├── css/                        # Styling modular (Material Design 3)
+│   ├── base.css                # Design tokens, reset, typography
+│   ├── components.css          # Cards, buttons, modals, forms
+│   ├── layout.css              # Navbar, sidebar, grid system
+│   └── pages.css               # Memory grid, stats, process list
+│
+├── js/
+│   ├── shared/                 # Kode yang dipakai bersama
+│   │   ├── utils.js            # Helper functions (sleep, formatBytes, dll)
+│   │   ├── notifications.js    # Modal & toast notification system
+│   │   └── animations.js       # Animation utilities (progress, pulse, typewriter)
+│   │
+│   └── pages/                  # Logic per halaman
+│       ├── contiguous.js       # Logic alokasi kontinu
+│       ├── noncontiguous.js    # Logic paging
+│       ├── hierarchy.js        # Logic hierarki memori
+│       ├── deadlock.js         # Logic deadlock
+│       └── memory-leak.js      # Logic memory leak
+│
+├── assets/                     # Asset statis (gambar, icons)
+│
+└── README.md
 ```
+
+### 📦 Keuntungan Struktur Modular
+
+| Aspek | Penjelasan |
+|-------|------------|
+| **Maintainability** | Perubahan terisolasi per modul |
+| **Reusability** | `utils.js`, `notifications.js` dipakai semua halaman |
+| **Readability** | File lebih kecil & fokus |
+| **Scalability** | Mudah tambah halaman/fitur baru |
+
 
 ---
 
@@ -256,6 +283,15 @@ Physical Address = (Frame Number × Page Size) + Offset
 ## 📝 Catatan Pengembangan
 
 ### Changelog
+
+- **v3.0** - Refaktor Struktur Modular
+  - Memisahkan CSS ke 4 file modular (base, components, layout, pages)
+  - Menambahkan shared JS utilities (utils.js, notifications.js, animations.js)
+  - Memindahkan halaman ke folder `pages/`
+  - Memindahkan logic JS ke folder `js/pages/`
+  - Menambahkan simulasi interaktif dengan popup animasi di hierarchy
+  - Struktur lebih maintainable dan scalable
+
 - **v2.0** - Redesign dengan Material Design 3
   - Menambahkan algoritma Best-Fit dan Worst-Fit
   - Menambahkan formula address translation
