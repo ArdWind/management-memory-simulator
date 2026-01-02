@@ -1,412 +1,264 @@
-// hierarchy.js - Material Design 3 Version (No Tailwind)
+// hierarchy.js - Memory Hierarchy Simulator (Fixed Logic)
+// Logika: User MEMBACA data dari hierarki, bukan menulis
+// Setiap level sudah terisi dengan data dan fungsi masing-masing
 
-// --- KONSTANTA SIMULASI ---
-const REGISTER_COUNT = 16;
-const L1_CACHE_BLOCKS = 32;
-const L2_CACHE_BLOCKS = 32;
-const RAM_BLOCKS = 64;
-const DISK_BLOCKS = 64;
-
-// Access times (in nanoseconds, except disk in milliseconds)
+// --- KONSTANTA ---
 const ACCESS_TIME = {
-    register: 0.5,
-    l1_cache: 1,
-    l2_cache: 3,
-    l3_cache: 10,
-    ram: 100,
-    disk: 10000000
+    register: 0.5,      // nanoseconds
+    l1_cache: 1,        // nanoseconds
+    l2_cache: 3,        // nanoseconds
+    ram: 100,           // nanoseconds
+    disk: 10000000      // nanoseconds (10ms)
 };
 
-// Colors for each level
+// Warna untuk setiap level
 const LEVEL_COLORS = {
-    register: { free: '#333538', active: '#BA68C8', border: '#44464E', activeBorder: '#9C27B0' },
-    l1Cache: { free: '#333538', active: '#64B5F6', border: '#44464E', activeBorder: '#1976D2' },
-    l2Cache: { free: '#333538', active: '#4DD0E1', border: '#44464E', activeBorder: '#00ACC1' },
-    ram: { free: '#333538', active: '#81C784', border: '#44464E', activeBorder: '#388E3C' },
-    disk: { free: '#333538', active: '#FFD54F', border: '#44464E', activeBorder: '#F57C00' }
+    register: { bg: '#7B1FA2', border: '#9C27B0', glow: '#BA68C880' },
+    l1Cache: { bg: '#1976D2', border: '#2196F3', glow: '#64B5F680' },
+    l2Cache: { bg: '#00838F', border: '#00ACC1', glow: '#4DD0E180' },
+    ram: { bg: '#2E7D32', border: '#43A047', glow: '#81C78480' },
+    disk: { bg: '#E65100', border: '#FB8C00', glow: '#FFB74D80' }
 };
 
-// --- STATUS SIMULASI GLOBAL ---
-let memoryHierarchy = {
-    registers: [],
-    l1Cache: [],
-    l2Cache: [],
-    ram: [],
-    disk: []
-};
+// --- DATA PRE-POPULATED ---
+// Register: CPU internal registers
+const REGISTER_DATA = [
+    { id: 'EAX', name: 'Accumulator', desc: 'Arithmetic operations' },
+    { id: 'EBX', name: 'Base Register', desc: 'Base pointer for memory' },
+    { id: 'ECX', name: 'Counter', desc: 'Loop counter' },
+    { id: 'EDX', name: 'Data Register', desc: 'I/O operations' },
+    { id: 'ESI', name: 'Source Index', desc: 'String operations source' },
+    { id: 'EDI', name: 'Dest Index', desc: 'String operations dest' },
+    { id: 'ESP', name: 'Stack Pointer', desc: 'Top of stack' },
+    { id: 'EBP', name: 'Base Pointer', desc: 'Base of stack frame' },
+    { id: 'EIP', name: 'Instruction Ptr', desc: 'Next instruction address' },
+    { id: 'EFLAGS', name: 'Flags', desc: 'Status flags (ZF, CF, etc)' },
+    { id: 'CS', name: 'Code Segment', desc: 'Code segment selector' },
+    { id: 'DS', name: 'Data Segment', desc: 'Data segment selector' },
+    { id: 'SS', name: 'Stack Segment', desc: 'Stack segment selector' },
+    { id: 'R8', name: 'General Reg 8', desc: 'Extended register' },
+    { id: 'R9', name: 'General Reg 9', desc: 'Extended register' },
+    { id: 'R10', name: 'General Reg 10', desc: 'Extended register' }
+];
 
+// Cache: Recently accessed data
+const CACHE_DATA = [
+    { id: 'C001', name: 'Current Instruction', desc: 'Instruksi yang sedang dieksekusi' },
+    { id: 'C002', name: 'Loop Variable', desc: 'Variabel loop yang sering diakses' },
+    { id: 'C003', name: 'Array Index', desc: 'Index array yang sedang diproses' },
+    { id: 'C004', name: 'Function Return', desc: 'Alamat return dari function' },
+    { id: 'C005', name: 'Local Variable', desc: 'Variabel lokal function' },
+    { id: 'C006', name: 'Object Reference', desc: 'Referensi ke object' },
+    { id: 'C007', name: 'String Buffer', desc: 'Buffer string temporary' },
+    { id: 'C008', name: 'Math Result', desc: 'Hasil kalkulasi matematika' },
+    { id: 'C009', name: 'Pointer Value', desc: 'Nilai pointer' },
+    { id: 'C010', name: 'Stack Frame', desc: 'Data stack frame aktif' },
+    { id: 'C011', name: 'Heap Reference', desc: 'Reference ke heap' },
+    { id: 'C012', name: 'Cache Line', desc: 'Cache line data' },
+    { id: 'C013', name: 'Branch Target', desc: 'Target branch prediction' },
+    { id: 'C014', name: 'Memory Address', desc: 'Alamat memory yang diakses' },
+    { id: 'C015', name: 'CPU State', desc: 'State CPU sementara' },
+    { id: 'C016', name: 'Interrupt Vector', desc: 'Vector interrupt aktif' }
+];
+
+// RAM: Running programs and data
+const RAM_DATA = [
+    { id: 'M001', name: 'Keyboard Buffer', desc: 'Buffer input keyboard' },
+    { id: 'M002', name: 'Mouse Position', desc: 'Koordinat X,Y mouse' },
+    { id: 'M003', name: 'Screen Buffer', desc: 'Frame buffer display' },
+    { id: 'M004', name: 'Audio Buffer', desc: 'Buffer audio output' },
+    { id: 'M005', name: 'Network Packet', desc: 'Packet data jaringan' },
+    { id: 'M006', name: 'Process Table', desc: 'Tabel proses aktif' },
+    { id: 'M007', name: 'Page Table', desc: 'Tabel paging virtual memory' },
+    { id: 'M008', name: 'File Descriptor', desc: 'Descriptor file terbuka' },
+    { id: 'M009', name: 'Browser Tab', desc: 'Data tab browser aktif' },
+    { id: 'M010', name: 'Text Editor', desc: 'Buffer text editor' },
+    { id: 'M011', name: 'Game State', desc: 'State game yang berjalan' },
+    { id: 'M012', name: 'Video Frame', desc: 'Frame video aktif' },
+    { id: 'M013', name: 'Clipboard', desc: 'Data clipboard' },
+    { id: 'M014', name: 'Font Cache', desc: 'Cache font rendering' },
+    { id: 'M015', name: 'DLL Module', desc: 'Dynamic library loaded' },
+    { id: 'M016', name: 'Thread Stack', desc: 'Stack thread aktif' }
+];
+
+// Disk: Persistent storage
+const DISK_DATA = [
+    { id: 'D001', name: 'boot.sys', desc: 'Boot loader system' },
+    { id: 'D002', name: 'kernel32.dll', desc: 'Windows kernel library' },
+    { id: 'D003', name: 'ntoskrnl.exe', desc: 'NT OS Kernel' },
+    { id: 'D004', name: 'chrome.exe', desc: 'Browser executable' },
+    { id: 'D005', name: 'document.docx', desc: 'Dokumen Word' },
+    { id: 'D006', name: 'photo.jpg', desc: 'File gambar' },
+    { id: 'D007', name: 'video.mp4', desc: 'File video' },
+    { id: 'D008', name: 'music.mp3', desc: 'File audio' },
+    { id: 'D009', name: 'database.db', desc: 'File database' },
+    { id: 'D010', name: 'config.ini', desc: 'File konfigurasi' },
+    { id: 'D011', name: 'pagefile.sys', desc: 'Virtual memory swap' },
+    { id: 'D012', name: 'hiberfil.sys', desc: 'Hibernation file' },
+    { id: 'D013', name: 'registry.dat', desc: 'Windows registry' },
+    { id: 'D014', name: 'temp.tmp', desc: 'File temporary' },
+    { id: 'D015', name: 'log.txt', desc: 'Log file system' },
+    { id: 'D016', name: 'backup.zip', desc: 'File backup' }
+];
+
+// --- STATS ---
 let stats = {
     totalAccesses: 0,
-    cacheHits: 0,
-    cacheMisses: 0,
-    totalAccessTime: 0
+    registerAccess: 0,
+    cacheAccess: 0,
+    ramAccess: 0,
+    diskAccess: 0,
+    totalTime: 0
 };
 
-/**
- * Show notification
- */
-function showNotification(message) {
-    document.getElementById('notification-message').innerText = message;
-    document.getElementById('custom-notification').classList.add('active');
-}
+// --- FUNCTIONS ---
 
-/**
- * Hide notification
- */
-function hideNotification() {
-    document.getElementById('custom-notification').classList.remove('active');
-}
-
-/**
- * Open info modal
- */
-function openInfoModal() {
-    document.getElementById('info-modal').classList.add('active');
-}
-
-/**
- * Close info modal
- */
-function closeInfoModal() {
-    document.getElementById('info-modal').classList.remove('active');
-}
-
-/**
- * Initialize memory hierarchy
- */
-function initializeMemory() {
-    memoryHierarchy.registers = Array(REGISTER_COUNT).fill(null).map((_, i) => ({
-        id: i,
-        data: null,
-        status: 'free'
-    }));
-
-    memoryHierarchy.l1Cache = Array(L1_CACHE_BLOCKS).fill(null).map((_, i) => ({
-        id: i,
-        data: null,
-        status: 'free'
-    }));
-
-    memoryHierarchy.l2Cache = Array(L2_CACHE_BLOCKS).fill(null).map((_, i) => ({
-        id: i,
-        data: null,
-        status: 'free'
-    }));
-
-    memoryHierarchy.ram = Array(RAM_BLOCKS).fill(null).map((_, i) => ({
-        id: i,
-        data: null,
-        status: 'free'
-    }));
-
-    memoryHierarchy.disk = Array(DISK_BLOCKS).fill(null).map((_, i) => ({
-        id: i,
-        data: null,
-        status: 'free'
-    }));
-
+function initialize() {
     renderAllLevels();
     updateStats();
 }
 
 /**
- * Render all memory levels
+ * Create clickable memory cell
  */
-function renderAllLevels() {
-    renderRegisters();
-    renderL1Cache();
-    renderL2Cache();
-    renderRAM();
-    renderDisk();
-}
-
-/**
- * Create a styled memory cell
- */
-function createMemoryCell(id, status, colors, label = null, size = 'normal') {
+function createCell(data, level, colors, accessTime, showLabel = true) {
     const cell = document.createElement('div');
-
-    const isActive = status === 'active';
-    const bgColor = isActive ? colors.active : colors.free;
-    const borderColor = isActive ? colors.activeBorder : colors.border;
 
     cell.style.cssText = `
         aspect-ratio: 1;
         border-radius: 8px;
-        border: 2px solid ${borderColor};
-        background-color: ${bgColor};
+        border: 2px solid ${colors.border};
+        background-color: ${colors.bg};
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: ${size === 'small' ? '10px' : '12px'};
+        font-size: ${showLabel ? '11px' : '10px'};
         font-weight: 600;
-        color: ${isActive ? '#fff' : '#8E9099'};
+        color: white;
         cursor: pointer;
         transition: all 0.2s ease;
-        ${isActive ? `box-shadow: 0 0 12px ${colors.active}80;` : ''}
     `;
 
-    cell.onmouseenter = () => { cell.style.transform = 'scale(1.1)'; cell.style.zIndex = '10'; };
-    cell.onmouseleave = () => { cell.style.transform = 'scale(1)'; cell.style.zIndex = '1'; };
-
-    if (label !== null) {
-        cell.innerHTML = `<span>${label}</span>`;
+    if (showLabel) {
+        cell.innerHTML = `<span>${data.id}</span>`;
     }
 
-    cell.title = `${id} | ${status}`;
+    cell.title = `${data.id}: ${data.name}`;
+
+    // Hover effect
+    cell.onmouseenter = () => {
+        cell.style.transform = 'scale(1.15)';
+        cell.style.zIndex = '10';
+        cell.style.boxShadow = `0 0 20px ${colors.glow}`;
+    };
+    cell.onmouseleave = () => {
+        cell.style.transform = 'scale(1)';
+        cell.style.zIndex = '1';
+        cell.style.boxShadow = 'none';
+    };
+
+    // Click to access/read data
+    cell.onclick = () => accessData(data, level, accessTime);
 
     return cell;
 }
 
 /**
- * Render Register level
+ * Access/Read data - show info and record stats
  */
-function renderRegisters() {
-    const container = document.getElementById('register-grid');
-    if (!container) return;
-    container.innerHTML = '';
-
-    memoryHierarchy.registers.forEach((reg) => {
-        const cell = createMemoryCell(
-            `Register ${reg.id}`,
-            reg.status,
-            LEVEL_COLORS.register,
-            `R${reg.id}`
-        );
-        container.appendChild(cell);
-    });
-}
-
-/**
- * Render L1 Cache
- */
-function renderL1Cache() {
-    const container = document.getElementById('l1-cache-grid');
-    if (!container) return;
-    container.innerHTML = '';
-
-    memoryHierarchy.l1Cache.forEach((block) => {
-        const cell = createMemoryCell(
-            `L1 Block ${block.id}`,
-            block.status,
-            LEVEL_COLORS.l1Cache,
-            null,
-            'small'
-        );
-        cell.style.aspectRatio = '1';
-        cell.style.minWidth = '20px';
-        cell.style.minHeight = '20px';
-        container.appendChild(cell);
-    });
-}
-
-/**
- * Render L2 Cache
- */
-function renderL2Cache() {
-    const container = document.getElementById('l2-cache-grid');
-    if (!container) return;
-    container.innerHTML = '';
-
-    memoryHierarchy.l2Cache.forEach((block) => {
-        const cell = createMemoryCell(
-            `L2 Block ${block.id}`,
-            block.status,
-            LEVEL_COLORS.l2Cache,
-            null,
-            'small'
-        );
-        cell.style.aspectRatio = '1';
-        cell.style.minWidth = '20px';
-        cell.style.minHeight = '20px';
-        container.appendChild(cell);
-    });
-}
-
-/**
- * Render RAM
- */
-function renderRAM() {
-    const container = document.getElementById('ram-grid');
-    if (!container) return;
-    container.innerHTML = '';
-
-    memoryHierarchy.ram.forEach((block) => {
-        const cell = createMemoryCell(
-            `RAM Block ${block.id}`,
-            block.status,
-            LEVEL_COLORS.ram,
-            block.id
-        );
-        container.appendChild(cell);
-    });
-}
-
-/**
- * Render Disk
- */
-function renderDisk() {
-    const container = document.getElementById('disk-grid');
-    if (!container) return;
-    container.innerHTML = '';
-
-    memoryHierarchy.disk.forEach((block) => {
-        const cell = createMemoryCell(
-            `Disk Block ${block.id}`,
-            block.status,
-            LEVEL_COLORS.disk,
-            block.id
-        );
-        container.appendChild(cell);
-    });
-}
-
-/**
- * Simulate memory access
- */
-async function simulateMemoryAccess() {
-    const dataSize = parseInt(document.getElementById('data-size').value);
-    const startLevel = document.getElementById('start-level').value;
-
+function accessData(data, level, accessTime) {
     stats.totalAccesses++;
-    let accessTime = 0;
-    let foundInCache = false;
+    stats.totalTime += accessTime;
 
-    // Reset previous active states before new simulation
-    resetActiveStates();
-    renderAllLevels();
-
-    // Wait a bit for reset to be visible
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    // Simulate access flow based on start level
-    if (startLevel === 'register') {
-        // Data already in register - fastest
-        await highlightLevel('register', 1500);
-        accessTime = ACCESS_TIME.register;
-        foundInCache = true;
-        stats.cacheHits++;
-        showNotification(`✅ Cache Hit! Data ditemukan di Register. Access time: ${accessTime.toFixed(2)} ns`);
-
-    } else if (startLevel === 'cache') {
-        // Check cache levels
-        await highlightLevel('register', 500);
-        await highlightLevel('cache', 1500);
-
-        // Random cache hit/miss (80% hit rate)
-        if (Math.random() < 0.8) {
-            accessTime = ACCESS_TIME.l1_cache;
-            foundInCache = true;
-            stats.cacheHits++;
-            showNotification(`✅ Cache Hit! Data ditemukan di L1 Cache. Access time: ${accessTime.toFixed(2)} ns`);
-        } else {
-            // Cache miss - go to RAM
-            await highlightLevel('ram', 1500);
-            accessTime = ACCESS_TIME.ram;
-            stats.cacheMisses++;
-            showNotification(`❌ Cache Miss! Data diambil dari RAM. Access time: ${accessTime.toFixed(2)} ns`);
-        }
-
-    } else if (startLevel === 'ram') {
-        // Access from RAM (cold start)
-        await highlightLevel('register', 300);
-        await highlightLevel('cache', 500);
-        await highlightLevel('ram', 1500);
-        accessTime = ACCESS_TIME.ram;
-        stats.cacheMisses++;
-        showNotification(`⚠️ Data diambil dari RAM (Cold start). Access time: ${accessTime.toFixed(2)} ns`);
-
-    } else if (startLevel === 'disk') {
-        // Full hierarchy traversal - slowest (page fault)
-        await highlightLevel('register', 300);
-        await highlightLevel('cache', 500);
-        await highlightLevel('ram', 800);
-        await highlightLevel('disk', 2000);
-        accessTime = ACCESS_TIME.disk;
-        stats.cacheMisses++;
-        showNotification(`🐌 Page Fault! Data diambil dari Disk (sangat lambat). Access time: ${(accessTime / 1000000).toFixed(2)} ms`);
+    // Update level-specific stats
+    switch (level) {
+        case 'Register': stats.registerAccess++; break;
+        case 'L1 Cache':
+        case 'L2 Cache': stats.cacheAccess++; break;
+        case 'RAM': stats.ramAccess++; break;
+        case 'Disk': stats.diskAccess++; break;
     }
 
-    stats.totalAccessTime += accessTime;
+    // Format access time
+    let timeStr;
+    if (accessTime < 1000) {
+        timeStr = `${accessTime} ns`;
+    } else if (accessTime < 1000000) {
+        timeStr = `${(accessTime / 1000).toFixed(1)} μs`;
+    } else {
+        timeStr = `${(accessTime / 1000000).toFixed(1)} ms`;
+    }
+
+    // Show notification with data info
+    const message = `
+📍 ID: ${data.id}
+📝 Nama: ${data.name}
+💡 Fungsi: ${data.desc}
+📂 Lokasi: ${level}
+⚡ Kecepatan Akses: ${timeStr}
+    `.trim();
+
+    showNotification(message);
     updateStats();
 }
 
 /**
- * Highlight specific level
+ * Render all levels
  */
-async function highlightLevel(level, duration) {
-    const levelMap = {
-        'register': memoryHierarchy.registers,
-        'cache': [...memoryHierarchy.l1Cache, ...memoryHierarchy.l2Cache],
-        'ram': memoryHierarchy.ram,
-        'disk': memoryHierarchy.disk
-    };
-
-    const blocks = levelMap[level];
-    if (blocks) {
-        // Mark 3-5 random blocks as active for better visualization
-        const numBlocks = Math.min(Math.floor(Math.random() * 3) + 3, blocks.length);
-        const indices = [];
-
-        while (indices.length < numBlocks) {
-            const idx = Math.floor(Math.random() * blocks.length);
-            if (!indices.includes(idx)) {
-                indices.push(idx);
-                blocks[idx].status = 'active';
-            }
-        }
-
-        renderAllLevels();
-    }
-
-    return new Promise(resolve => setTimeout(resolve, duration));
+function renderAllLevels() {
+    renderLevel('register-grid', REGISTER_DATA, 'Register', LEVEL_COLORS.register, ACCESS_TIME.register);
+    renderLevel('l1-cache-grid', CACHE_DATA.slice(0, 16), 'L1 Cache', LEVEL_COLORS.l1Cache, ACCESS_TIME.l1_cache, false);
+    renderLevel('l2-cache-grid', CACHE_DATA, 'L2 Cache', LEVEL_COLORS.l2Cache, ACCESS_TIME.l2_cache, false);
+    renderLevel('ram-grid', RAM_DATA, 'RAM', LEVEL_COLORS.ram, ACCESS_TIME.ram);
+    renderLevel('disk-grid', DISK_DATA, 'Disk', LEVEL_COLORS.disk, ACCESS_TIME.disk);
 }
 
 /**
- * Reset all active states
+ * Render a specific level
  */
-function resetActiveStates() {
-    memoryHierarchy.registers.forEach(r => r.status = 'free');
-    memoryHierarchy.l1Cache.forEach(c => c.status = 'free');
-    memoryHierarchy.l2Cache.forEach(c => c.status = 'free');
-    memoryHierarchy.ram.forEach(r => r.status = 'free');
-    memoryHierarchy.disk.forEach(d => d.status = 'free');
+function renderLevel(containerId, data, level, colors, accessTime, showLabel = true) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    data.forEach(item => {
+        const cell = createCell(item, level, colors, accessTime, showLabel);
+        container.appendChild(cell);
+    });
 }
 
 /**
  * Update statistics display
  */
 function updateStats() {
-    const totalAccessEl = document.getElementById('total-accesses');
-    const cacheHitsEl = document.getElementById('cache-hits');
-    const cacheMissesEl = document.getElementById('cache-misses');
-    const hitRateEl = document.getElementById('hit-rate');
-    const avgTimeEl = document.getElementById('avg-time');
+    const setEl = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    };
 
-    if (totalAccessEl) totalAccessEl.textContent = stats.totalAccesses;
-    if (cacheHitsEl) cacheHitsEl.textContent = stats.cacheHits;
-    if (cacheMissesEl) cacheMissesEl.textContent = stats.cacheMisses;
+    setEl('total-accesses', stats.totalAccesses);
+    setEl('cache-hits', stats.cacheAccess);
+    setEl('cache-misses', stats.ramAccess + stats.diskAccess);
 
     const hitRate = stats.totalAccesses > 0
-        ? ((stats.cacheHits / stats.totalAccesses) * 100).toFixed(1)
+        ? (((stats.registerAccess + stats.cacheAccess) / stats.totalAccesses) * 100).toFixed(1)
         : 0;
-    if (hitRateEl) hitRateEl.textContent = `${hitRate}%`;
+    setEl('hit-rate', `${hitRate}%`);
 
+    // Average time
     const avgTime = stats.totalAccesses > 0
-        ? (stats.totalAccessTime / stats.totalAccesses).toFixed(2)
+        ? (stats.totalTime / stats.totalAccesses)
         : 0;
 
-    // Format time appropriately
-    let timeDisplay;
+    let timeStr;
     if (avgTime < 1000) {
-        timeDisplay = `${avgTime} ns`;
+        timeStr = `${avgTime.toFixed(2)} ns`;
     } else if (avgTime < 1000000) {
-        timeDisplay = `${(avgTime / 1000).toFixed(2)} μs`;
+        timeStr = `${(avgTime / 1000).toFixed(2)} μs`;
     } else {
-        timeDisplay = `${(avgTime / 1000000).toFixed(2)} ms`;
+        timeStr = `${(avgTime / 1000000).toFixed(2)} ms`;
     }
-
-    if (avgTimeEl) avgTimeEl.textContent = timeDisplay;
+    setEl('avg-time', timeStr);
 }
 
 /**
@@ -415,23 +267,48 @@ function updateStats() {
 function resetSimulation() {
     stats = {
         totalAccesses: 0,
-        cacheHits: 0,
-        cacheMisses: 0,
-        totalAccessTime: 0
+        registerAccess: 0,
+        cacheAccess: 0,
+        ramAccess: 0,
+        diskAccess: 0,
+        totalTime: 0
     };
-
-    resetActiveStates();
-    renderAllLevels();
     updateStats();
+    showNotification('🔄 Statistik telah direset!');
+}
 
-    showNotification('🔄 Simulasi telah direset ke kondisi awal!');
+/**
+ * Show notification modal
+ */
+function showNotification(message) {
+    const msgEl = document.getElementById('notification-message');
+    const modal = document.getElementById('custom-notification');
+    if (msgEl) {
+        // Preserve line breaks
+        msgEl.innerHTML = message.replace(/\n/g, '<br>');
+    }
+    if (modal) modal.classList.add('active');
+}
+
+function hideNotification() {
+    const modal = document.getElementById('custom-notification');
+    if (modal) modal.classList.remove('active');
+}
+
+function openInfoModal() {
+    const modal = document.getElementById('info-modal');
+    if (modal) modal.classList.add('active');
+}
+
+function closeInfoModal() {
+    const modal = document.getElementById('info-modal');
+    if (modal) modal.classList.remove('active');
 }
 
 // Initialize on load
-window.onload = initializeMemory;
+window.onload = initialize;
 
-// Expose functions to global scope
-window.simulateMemoryAccess = simulateMemoryAccess;
+// Expose functions
 window.resetSimulation = resetSimulation;
 window.showNotification = showNotification;
 window.hideNotification = hideNotification;

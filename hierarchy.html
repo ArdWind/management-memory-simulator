@@ -315,7 +315,8 @@
             </div>
             <div class="modal-body">
                 <p style="margin-bottom: 16px;">Hierarki memori adalah organisasi berbagai jenis memori berdasarkan
-                    <strong>kecepatan</strong>, <strong>kapasitas</strong>, dan <strong>harga</strong>.</p>
+                    <strong>kecepatan</strong>, <strong>kapasitas</strong>, dan <strong>harga</strong>.
+                </p>
 
                 <div style="display: grid; gap: 8px;">
                     <div style="padding: 12px; background: var(--md-surface-container-high); border-radius: 8px;">
@@ -370,37 +371,34 @@
             <!-- Sidebar Controls -->
             <aside>
                 <div class="stats-panel">
-                    <h3 class="section-title"><i class="fas fa-sliders-h"></i> Kontrol Simulasi</h3>
+                    <h3 class="section-title"><i class="fas fa-mouse-pointer"></i> Cara Menggunakan</h3>
 
-                    <div class="input-group">
-                        <label class="input-label"><i class="fas fa-file"></i> Data Size</label>
-                        <select id="data-size" class="input-field">
-                            <option value="8">8 Bytes (1 Word)</option>
-                            <option value="64">64 Bytes (Cache Line)</option>
-                            <option value="4096" selected>4 KB (Page)</option>
-                            <option value="1048576">1 MB (File)</option>
-                        </select>
+                    <div
+                        style="padding: 16px; background: var(--md-surface-container-high); border-radius: 12px; margin-bottom: 16px;">
+                        <p style="font-size: 14px; color: var(--md-on-surface); line-height: 1.6;">
+                            <strong>Klik pada sel memori</strong> di level manapun untuk melihat informasi data:
+                        </p>
+                        <ul
+                            style="font-size: 13px; color: var(--md-on-surface-variant); margin-top: 12px; padding-left: 20px; line-height: 1.8;">
+                            <li>📍 <strong>ID</strong> data</li>
+                            <li>📝 <strong>Nama</strong> data</li>
+                            <li>💡 <strong>Fungsi</strong> data</li>
+                            <li>📂 <strong>Lokasi</strong> level</li>
+                            <li>⚡ <strong>Kecepatan akses</strong></li>
+                        </ul>
                     </div>
 
-                    <div class="input-group">
-                        <label class="input-label"><i class="fas fa-crosshairs"></i> Starting Level</label>
-                        <select id="start-level" class="input-field">
-                            <option value="disk">Disk (Cold Start)</option>
-                            <option value="ram">RAM</option>
-                            <option value="cache" selected>Cache</option>
-                            <option value="register">Register</option>
-                        </select>
+                    <div
+                        style="padding: 12px; background: rgba(79, 216, 235, 0.1); border-left: 3px solid var(--md-primary); border-radius: 4px; margin-bottom: 16px;">
+                        <p style="font-size: 12px; color: var(--md-primary);">
+                            <i class="fas fa-lightbulb"></i> <strong>Tip:</strong> Perhatikan perbedaan kecepatan akses
+                            antar level!
+                        </p>
                     </div>
-
-                    <button onclick="simulateMemoryAccess()" class="btn btn-filled"
-                        style="width: 100%; margin-bottom: 8px; background: linear-gradient(135deg, #BA68C8, #7B1FA2);">
-                        <i class="fas fa-play"></i>
-                        Simulate Access
-                    </button>
 
                     <button onclick="resetSimulation()" class="btn btn-outlined" style="width: 100%;">
                         <i class="fas fa-redo"></i>
-                        Reset
+                        Reset Statistik
                     </button>
 
                     <!-- Stats -->
