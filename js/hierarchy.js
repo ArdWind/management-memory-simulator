@@ -306,177 +306,201 @@ function closeInfoModal() {
 }
 
 // ==========================================
-// SCENARIO SIMULATIONS
+// SCENARIO SIMULATIONS - POPUP VERSION
 // ==========================================
 
-const SCENARIOS = {
-    typing: {
-        name: 'Ketik Teks',
-        icon: '⌨️',
-        screen: `<div style="font-family: monospace; color: #0f0; font-size: 10px; text-align: left; padding: 8px;">
-            <div>📝 Word Document</div>
-            <div style="margin-top: 4px; color: #fff;">Hello World_</div>
-        </div>`,
-        levels: ['reg', 'cache'],
-        time: '~1 ns',
-        desc: 'Ketik keyboard → Register → Cache. Super cepat karena data kecil!'
-    },
-    gaming: {
-        name: 'Main Game',
-        icon: '🎮',
-        screen: `<div style="text-align: center;">
-            <div style="font-size: 16px;">🐦</div>
-            <div style="color: #4CAF50; font-size: 8px;">Flappy Bird</div>
-            <div style="margin-top: 2px; color: #888; font-size: 7px;">Score: 42</div>
-        </div>`,
-        levels: ['cache', 'ram', 'disk'],
-        time: '~100 ns - 10 ms',
-        desc: 'Game load dari Disk → RAM, lalu terus stream ke Cache saat bermain.'
-    },
-    openfile: {
-        name: 'Buka File',
-        icon: '📂',
-        screen: `<div style="text-align: center;">
-            <div style="font-size: 14px;">📄</div>
-            <div style="color: #64B5F6; font-size: 9px;">document.docx</div>
-            <div style="color: #888; font-size: 7px;">Loading...</div>
-        </div>`,
-        levels: ['disk', 'ram', 'cache'],
-        time: '~10 ms',
-        desc: 'File dibaca dari Disk → RAM → Cache. Lambat karena Disk!'
-    },
-    video: {
-        name: 'Edit Video',
-        icon: '🎬',
-        screen: `<div style="text-align: center;">
-            <div style="font-size: 12px;">🎥</div>
-            <div style="color: #FB8C00; font-size: 8px;">Premiere Pro</div>
-            <div style="background: #333; height: 8px; margin: 4px 8px; border-radius: 2px;">
-                <div style="background: #FB8C00; width: 60%; height: 100%; border-radius: 2px;"></div>
+const SIM_SCREENS = {
+    typing: () => `
+        <div style="height: 280px; background: linear-gradient(180deg, #1e3a5f 0%, #0d1b2a 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+            <div style="background: #fff; width: 90%; max-width: 350px; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); overflow: hidden;">
+                <div style="background: #2196F3; padding: 8px 12px; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 14px;">📝</span>
+                    <span style="color: white; font-size: 12px; font-weight: 500;">Microsoft Word</span>
+                </div>
+                <div style="padding: 20px; min-height: 120px; font-family: 'Times New Roman', serif; font-size: 16px; color: #333;">
+                    <div id="typing-text" style="display: inline;"></div><span style="animation: typing-cursor 0.5s infinite;">|</span>
+                </div>
             </div>
-        </div>`,
-        levels: ['disk', 'ram', 'cache', 'reg'],
-        time: '~100 ms+',
-        desc: 'Video besar: Disk ↔ RAM terus-menerus. Sangat berat!'
-    },
-    smalldata: {
-        name: 'Data Kecil',
-        icon: '📄',
-        screen: `<div style="text-align: center;">
-            <div style="font-size: 14px;">📋</div>
-            <div style="color: #00ACC1; font-size: 9px;">1 KB Data</div>
-            <div style="color: #4CAF50; font-size: 7px;">✓ Instan!</div>
-        </div>`,
-        levels: ['reg', 'cache'],
-        time: '<1 ns',
-        desc: 'Data kecil langsung di Register/Cache. Sangat cepat!'
-    },
-    bigdata: {
-        name: 'Data Besar',
-        icon: '💾',
-        screen: `<div style="text-align: center;">
-            <div style="font-size: 12px;">💿</div>
-            <div style="color: #E91E63; font-size: 9px;">5 GB Transfer</div>
-            <div style="background: #333; height: 6px; margin: 4px 8px; border-radius: 2px;">
-                <div style="background: #E91E63; width: 30%; height: 100%; border-radius: 2px; animation: loading 2s infinite;"></div>
+            <div style="margin-top: 20px; color: #64B5F6; font-size: 11px;">⌨️ Keyboard → Register → Cache</div>
+        </div>
+    `,
+    gaming: () => `
+        <div style="height: 280px; background: linear-gradient(180deg, #87CEEB 0%, #98FB98 60%, #8B4513 100%); position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 15px; left: 50%; transform: translateX(-50%); color: #333; font-size: 18px; font-weight: bold;">🎮 Flappy Bird</div>
+            <div id="flappy-bird" style="position: absolute; left: 30%; top: 50%; font-size: 40px; transition: top 0.15s;">🐦</div>
+            <div class="pipe" style="position: absolute; right: 15%; top: 0; width: 40px; height: 70px; background: linear-gradient(90deg, #2E7D32, #4CAF50); border-radius: 0 0 8px 8px;"></div>
+            <div class="pipe" style="position: absolute; right: 15%; bottom: 50px; width: 40px; height: 90px; background: linear-gradient(90deg, #2E7D32, #4CAF50); border-radius: 8px 8px 0 0;"></div>
+            <div style="position: absolute; bottom: 0; width: 100%; height: 50px; background: #8B4513;"></div>
+            <div style="position: absolute; top: 50px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 6px 16px; border-radius: 15px;">
+                <span style="color: white; font-size: 18px; font-weight: bold;">Score: <span id="game-score">0</span></span>
             </div>
-        </div>`,
-        levels: ['disk', 'ram'],
-        time: '~5 detik+',
-        desc: 'Copy file besar: Disk → RAM → Disk. Sangat lambat!'
-    }
+        </div>
+    `,
+    openfile: () => `
+        <div style="height: 280px; background: linear-gradient(180deg, #1a237e 0%, #0d1421 100%); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div style="font-size: 50px; margin-bottom: 15px;">📂</div>
+            <div style="color: white; font-size: 15px;">Membuka File...</div>
+            <div style="color: #64B5F6; font-size: 13px; margin: 8px 0;">document.docx</div>
+            <div style="width: 70%; height: 18px; background: #333; border-radius: 9px; overflow: hidden; margin-top: 10px;">
+                <div id="file-progress" style="height: 100%; background: linear-gradient(90deg, #2196F3, #00BCD4); width: 0%; border-radius: 9px;"></div>
+            </div>
+            <div id="file-percent" style="color: #4FD8EB; font-size: 14px; margin-top: 8px;">0%</div>
+        </div>
+    `,
+    video: () => `
+        <div style="height: 280px; background: #1a1a2e;">
+            <div style="background: #2d2d3a; padding: 6px 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #444;">
+                <span>🎬</span><span style="color: #00BCD4; font-size: 11px;">Adobe Premiere Pro</span>
+            </div>
+            <div style="padding: 12px;">
+                <div style="background: #000; height: 90px; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                    <div style="font-size: 35px;">🎥</div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px;">
+                    <div style="display: flex; gap: 6px; align-items: center;"><span style="color: #888; font-size: 9px; width: 20px;">V1</span><div style="flex: 1; height: 16px; background: #FF5722; border-radius: 3px;"></div></div>
+                    <div style="display: flex; gap: 6px; align-items: center;"><span style="color: #888; font-size: 9px; width: 20px;">A1</span><div style="flex: 1; height: 14px; background: #4CAF50; border-radius: 3px;"></div></div>
+                </div>
+                <div><div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span style="color: #FB8C00; font-size: 10px;">Rendering...</span><span id="render-percent" style="color: #FB8C00; font-size: 10px;">0%</span></div>
+                <div style="height: 8px; background: #333; border-radius: 4px; overflow: hidden;"><div id="render-progress" style="height: 100%; background: linear-gradient(90deg, #FB8C00, #FF5722); width: 0%;"></div></div></div>
+            </div>
+        </div>
+    `,
+    smalldata: () => `
+        <div style="height: 280px; background: linear-gradient(180deg, #004d40 0%, #00251a 100%); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div style="font-size: 50px;">📋</div>
+            <div style="color: #4DD0E1; font-size: 16px; margin-top: 10px;">1 KB Data</div>
+            <div id="small-result" style="margin-top: 25px; color: #4CAF50; font-size: 28px; opacity: 0; transition: opacity 0.3s;">✅ Instan!</div>
+        </div>
+    `,
+    bigdata: () => `
+        <div style="height: 280px; background: linear-gradient(180deg, #4a148c 0%, #12005e 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+            <div style="display: flex; align-items: center; gap: 25px; margin-bottom: 15px;">
+                <div style="text-align: center;"><div style="font-size: 35px;">💾</div><div style="color: #888; font-size: 9px;">Disk A</div></div>
+                <div style="font-size: 20px; color: #E91E63;">➡️</div>
+                <div style="text-align: center;"><div style="font-size: 35px;">💾</div><div style="color: #888; font-size: 9px;">Disk B</div></div>
+            </div>
+            <div style="color: white; font-size: 13px;">Copying 5 GB...</div>
+            <div style="width: 75%; height: 20px; background: #333; border-radius: 10px; overflow: hidden; margin: 12px 0;">
+                <div id="big-progress" style="height: 100%; background: linear-gradient(90deg, #E91E63, #9C27B0); width: 0%; border-radius: 10px;"></div>
+            </div>
+            <div id="big-stats" style="color: #888; font-size: 11px;">0 MB / 5000 MB</div>
+        </div>
+    `
 };
 
-let isSimulating = false;
+const SIM_CONFIG = {
+    typing: { levels: ['reg', 'cache'], time: '~1 ns', desc: 'Keyboard → Register → Cache. Super cepat!' },
+    gaming: { levels: ['disk', 'ram', 'cache'], time: '~10-100 ms', desc: 'Game load dari Disk → RAM → Cache' },
+    openfile: { levels: ['disk', 'ram', 'cache'], time: '~10 ms', desc: 'File: Disk → RAM → Cache' },
+    video: { levels: ['disk', 'ram', 'cache', 'reg'], time: '~1-10 detik', desc: 'Video render: Disk ↔ RAM ↔ Cache' },
+    smalldata: { levels: ['reg', 'cache'], time: '<1 ns', desc: 'Data kecil langsung di Register!' },
+    bigdata: { levels: ['disk', 'ram'], time: '~5 detik+', desc: 'Transfer besar: Disk → RAM → Disk' }
+};
 
-/**
- * Run a scenario simulation
- */
+let birdInterval = null;
+
 async function runScenario(type) {
-    if (isSimulating) return;
-    isSimulating = true;
+    const modal = document.getElementById('simulation-modal');
+    const screen = document.getElementById('sim-screen');
+    const status = document.getElementById('sim-status');
+    const config = SIM_CONFIG[type];
+    if (!modal || !screen || !config) return;
 
-    const scenario = SCENARIOS[type];
-    if (!scenario) return;
-
-    const screen = document.getElementById('pc-screen');
-    const status = document.getElementById('scenario-status');
-
-    // Reset all indicators
-    resetIndicators();
-
-    // Update screen with scenario visual
-    if (screen) {
-        screen.innerHTML = scenario.screen;
-    }
-
-    // Show loading status
-    if (status) {
-        status.innerHTML = `<span style="color: #4FD8EB; font-size: 10px;">⏳ Memproses ${scenario.name}...</span>`;
-    }
-
-    // Animate level indicators one by one
-    for (const level of scenario.levels) {
-        await highlightIndicator(level, 600);
-    }
-
-    // Show result
-    if (status) {
-        status.innerHTML = `
-            <div style="text-align: left; font-size: 9px; line-height: 1.4;">
-                <div style="color: #4CAF50; margin-bottom: 2px;">✅ ${scenario.name} selesai!</div>
-                <div style="color: #FFB74D;">⏱️ Waktu: ${scenario.time}</div>
-                <div style="color: #888; margin-top: 4px;">${scenario.desc}</div>
-            </div>
-        `;
-    }
-
-    isSimulating = false;
-}
-
-/**
- * Highlight a level indicator
- */
-async function highlightIndicator(level, duration) {
-    const colors = {
-        'reg': '#9C27B0',
-        'cache': '#2196F3',
-        'ram': '#43A047',
-        'disk': '#FB8C00'
-    };
-
-    const indicator = document.getElementById(`ind-${level}`);
-    if (indicator) {
-        indicator.style.background = colors[level] || '#666';
-        indicator.style.boxShadow = `0 0 10px ${colors[level]}`;
-        indicator.querySelector('div').style.color = '#fff';
-    }
-
-    return new Promise(resolve => setTimeout(resolve, duration));
-}
-
-/**
- * Reset all indicators
- */
-function resetIndicators() {
-    ['reg', 'cache', 'ram', 'disk'].forEach(level => {
-        const indicator = document.getElementById(`ind-${level}`);
-        if (indicator) {
-            indicator.style.background = '#333';
-            indicator.style.boxShadow = 'none';
-            indicator.querySelector('div').style.color = '#666';
-        }
+    ['reg', 'cache', 'ram', 'disk'].forEach(l => {
+        const el = document.getElementById(`sim-${l}`);
+        if (el) { el.style.background = '#333'; el.style.boxShadow = 'none'; }
     });
+
+    modal.classList.add('active');
+    screen.innerHTML = SIM_SCREENS[type]();
+    status.innerHTML = '<span style="color: #4FD8EB;">⏳ Memulai...</span>';
+
+    for (const level of config.levels) {
+        await activateSimLevel(level);
+        await sleep(500);
+    }
+
+    switch (type) {
+        case 'typing': await animTyping(); break;
+        case 'gaming': await animGaming(); break;
+        case 'openfile': await animFile(); break;
+        case 'video': await animVideo(); break;
+        case 'smalldata': await animSmall(); break;
+        case 'bigdata': await animBig(); break;
+    }
+
+    status.innerHTML = `<div style="text-align:left;"><div style="color:#4CAF50;font-size:12px;">✅ Selesai!</div><div style="color:#FFB74D;font-size:11px;">⏱️ ${config.time}</div><div style="color:#888;font-size:10px;margin-top:4px;">${config.desc}</div></div>`;
 }
 
-// Initialize on load
-window.onload = initialize;
+async function activateSimLevel(l) {
+    const c = { reg: '#9C27B0', cache: '#2196F3', ram: '#43A047', disk: '#FB8C00' };
+    const el = document.getElementById(`sim-${l}`);
+    if (el) { el.style.background = c[l]; el.style.boxShadow = `0 0 15px ${c[l]}`; }
+}
 
-// Expose functions
+async function animTyping() {
+    const t = "Hello World! Mengetik sangat cepat...";
+    const el = document.getElementById('typing-text');
+    if (!el) return;
+    for (let i = 0; i <= t.length; i++) { el.textContent = t.substring(0, i); await sleep(40); }
+}
+
+async function animGaming() {
+    const bird = document.getElementById('flappy-bird');
+    const score = document.getElementById('game-score');
+    let y = 50, dir = -1, s = 0;
+    for (let i = 0; i < 30; i++) {
+        y += dir * 8;
+        if (y < 30 || y > 70) dir *= -1;
+        if (bird) bird.style.top = y + '%';
+        if (i % 3 === 0 && score) score.textContent = ++s;
+        await sleep(100);
+    }
+}
+
+async function animFile() {
+    const p = document.getElementById('file-progress');
+    const t = document.getElementById('file-percent');
+    for (let i = 0; i <= 100; i += 4) { if (p) p.style.width = i + '%'; if (t) t.textContent = i + '%'; await sleep(80); }
+}
+
+async function animVideo() {
+    const p = document.getElementById('render-progress');
+    const t = document.getElementById('render-percent');
+    for (let i = 0; i <= 100; i += 2) { if (p) p.style.width = i + '%'; if (t) t.textContent = i + '%'; await sleep(60); }
+}
+
+async function animSmall() {
+    await sleep(400);
+    const r = document.getElementById('small-result');
+    if (r) r.style.opacity = '1';
+}
+
+async function animBig() {
+    const p = document.getElementById('big-progress');
+    const s = document.getElementById('big-stats');
+    for (let i = 0; i <= 100; i += 2) {
+        if (p) p.style.width = i + '%';
+        if (s) s.textContent = `${i * 50} MB / 5000 MB`;
+        await sleep(80);
+    }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function closeSimulation() {
+    const modal = document.getElementById('simulation-modal');
+    if (modal) modal.classList.remove('active');
+    if (birdInterval) clearInterval(birdInterval);
+}
+
+window.onload = initialize;
 window.runScenario = runScenario;
+window.closeSimulation = closeSimulation;
 window.resetSimulation = resetSimulation;
 window.showNotification = showNotification;
 window.hideNotification = hideNotification;
 window.openInfoModal = openInfoModal;
 window.closeInfoModal = closeInfoModal;
+
 
