@@ -1,0 +1,131 @@
+/* ===========================================
+   layout.css - Layout Structure
+   Navbar, Sidebar, Grid, Container
+   =========================================== */
+
+/* ========== Container ========== */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--md-spacing-md);
+}
+
+/* ========== Grid ========== */
+.grid-cols-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--md-spacing-md);
+}
+
+.grid-cols-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--md-spacing-md);
+}
+
+.grid-cols-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--md-spacing-md);
+}
+
+/* ========== Navigation Bar ========== */
+.navbar {
+    background-color: var(--md-surface-container);
+    padding: var(--md-spacing-md) var(--md-spacing-lg);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--md-elevation-2);
+}
+
+.navbar-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-title {
+    color: var(--md-primary);
+    font-size: var(--md-title-large);
+    font-weight: 500;
+}
+
+.navbar-subtitle {
+    color: var(--md-on-surface-variant);
+    font-size: var(--md-label-medium);
+}
+
+/* ========== Sidebar Layout ========== */
+.sidebar-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: var(--md-spacing-lg);
+}
+
+.sidebar-layout aside {
+    position: sticky;
+    top: 80px;
+    height: fit-content;
+}
+
+.stats-panel {
+    background-color: var(--md-surface-container);
+    border-radius: var(--md-radius-lg);
+    padding: var(--md-spacing-md);
+}
+
+.section-title {
+    color: var(--md-on-surface);
+    font-size: var(--md-title-medium);
+    font-weight: 500;
+    margin-bottom: var(--md-spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--md-spacing-sm);
+}
+
+.section-title i {
+    color: var(--md-primary);
+}
+
+/* ========== Footer ========== */
+.footer {
+    background-color: var(--md-surface-container);
+    padding: var(--md-spacing-lg);
+    text-align: center;
+    color: var(--md-on-surface-variant);
+    font-size: var(--md-body-medium);
+    margin-top: var(--md-spacing-xl);
+    border-top: 1px solid var(--md-outline-variant);
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 1024px) {
+    .grid-cols-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sidebar-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar-layout aside {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .grid-cols-2,
+    .grid-cols-3,
+    .grid-cols-4 {
+        grid-template-columns: 1fr;
+    }
+}

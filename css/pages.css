@@ -1,0 +1,185 @@
+/* ===========================================
+   pages.css - Page-Specific Styles
+   Memory Grid, Process List, Stats, etc.
+   =========================================== */
+
+/* ========== Memory Grid ========== */
+.memory-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+}
+
+.memory-cell {
+    aspect-ratio: 1;
+    border-radius: var(--md-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--md-label-medium);
+    font-weight: 600;
+    color: white;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.memory-cell:hover {
+    transform: scale(1.1);
+    z-index: 10;
+    box-shadow: var(--md-elevation-3);
+}
+
+.memory-cell.free {
+    background-color: var(--md-surface-container-highest);
+    border: 1px dashed var(--md-outline-variant);
+    color: var(--md-on-surface-variant);
+}
+
+.memory-cell.allocated {
+    box-shadow: var(--md-elevation-1);
+}
+
+/* Process colors */
+.memory-cell.p1 {
+    background-color: var(--process-1);
+}
+
+.memory-cell.p2 {
+    background-color: var(--process-2);
+}
+
+.memory-cell.p3 {
+    background-color: var(--process-3);
+}
+
+.memory-cell.p4 {
+    background-color: var(--process-4);
+}
+
+.memory-cell.p5 {
+    background-color: var(--process-5);
+}
+
+.memory-cell.p6 {
+    background-color: var(--process-6);
+}
+
+.memory-cell.p7 {
+    background-color: var(--process-7);
+}
+
+.memory-cell.p8 {
+    background-color: var(--process-8);
+}
+
+/* Tooltip */
+.memory-cell[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--md-spacing-xs) var(--md-spacing-sm);
+    background-color: var(--md-surface-container);
+    color: var(--md-on-surface);
+    font-size: var(--md-label-medium);
+    white-space: nowrap;
+    border-radius: var(--md-radius-xs);
+    box-shadow: var(--md-elevation-2);
+    margin-bottom: 4px;
+    z-index: 20;
+}
+
+/* ========== Stats Panel ========== */
+.stats-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--md-spacing-sm) 0;
+    border-bottom: 1px solid var(--md-outline-variant);
+}
+
+.stats-item:last-child {
+    border-bottom: none;
+}
+
+.stats-label {
+    color: var(--md-on-surface-variant);
+    font-size: var(--md-body-medium);
+}
+
+.stats-value {
+    font-size: var(--md-body-large);
+    font-weight: 600;
+}
+
+.stats-value.success {
+    color: var(--md-success);
+}
+
+.stats-value.warning {
+    color: var(--md-warning);
+}
+
+.stats-value.error {
+    color: var(--md-error);
+}
+
+.stats-value.primary {
+    color: var(--md-primary);
+}
+
+/* ========== Process List ========== */
+.process-item {
+    background-color: var(--md-surface-container-high);
+    border-radius: var(--md-radius-md);
+    padding: var(--md-spacing-md);
+    margin-bottom: var(--md-spacing-sm);
+    transition: background-color 0.2s ease;
+}
+
+.process-item:hover {
+    background-color: var(--md-surface-container-highest);
+}
+
+.process-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--md-spacing-sm);
+}
+
+.process-name {
+    display: flex;
+    align-items: center;
+    gap: var(--md-spacing-sm);
+    font-size: var(--md-title-medium);
+    font-weight: 600;
+}
+
+.process-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: var(--md-radius-full);
+}
+
+.process-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--md-spacing-xs);
+    font-size: var(--md-body-medium);
+    color: var(--md-on-surface-variant);
+}
+
+/* ========== Memory Grid Responsive ========== */
+@media (max-width: 768px) {
+    .memory-grid {
+        grid-template-columns: repeat(8, 1fr);
+        gap: 4px;
+    }
+
+    .memory-cell {
+        font-size: 10px;
+    }
+}

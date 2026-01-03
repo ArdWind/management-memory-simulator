@@ -14,8 +14,11 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- MD3 Styles -->
-    <link rel="stylesheet" href="styles.css">
+    <!-- MD3 Styles - Modular CSS -->
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/pages.css">
 
     <style>
         .page-header {
@@ -270,7 +273,7 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="navbar-content">
-            <a href="index.html" class="btn btn-text">
+            <a href="../index.html" class="btn btn-text">
                 <i class="fas fa-arrow-left"></i>
                 <span>Dashboard</span>
             </a>
@@ -315,7 +318,8 @@
             </div>
             <div class="modal-body">
                 <p style="margin-bottom: 16px;">Hierarki memori adalah organisasi berbagai jenis memori berdasarkan
-                    <strong>kecepatan</strong>, <strong>kapasitas</strong>, dan <strong>harga</strong>.</p>
+                    <strong>kecepatan</strong>, <strong>kapasitas</strong>, dan <strong>harga</strong>.
+                </p>
 
                 <div style="display: grid; gap: 8px;">
                     <div style="padding: 12px; background: var(--md-surface-container-high); border-radius: 8px;">
@@ -364,69 +368,286 @@
         </div>
     </div>
 
+    <!-- Simulation Popup Modal -->
+    <div id="simulation-modal" class="modal-overlay">
+        <div class="modal" style="max-width: 500px; padding: 0; overflow: hidden;">
+            <!-- Simulation Screen -->
+            <div id="sim-screen" style="background: #0a0a0f; min-height: 280px; position: relative; overflow: hidden;">
+                <!-- Content will be injected by JS -->
+            </div>
+
+            <!-- Memory Level Indicators -->
+            <div style="background: #1a1a2e; padding: 16px; border-top: 1px solid #333;">
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <div id="sim-reg" class="sim-level"
+                        style="flex: 1; background: #333; border-radius: 8px; padding: 8px; text-align: center; transition: all 0.3s;">
+                        <div style="font-size: 18px;">💠</div>
+                        <div style="font-size: 10px; color: #888; margin-top: 2px;">Register</div>
+                    </div>
+                    <div id="sim-cache" class="sim-level"
+                        style="flex: 1; background: #333; border-radius: 8px; padding: 8px; text-align: center; transition: all 0.3s;">
+                        <div style="font-size: 18px;">⚡</div>
+                        <div style="font-size: 10px; color: #888; margin-top: 2px;">Cache</div>
+                    </div>
+                    <div id="sim-ram" class="sim-level"
+                        style="flex: 1; background: #333; border-radius: 8px; padding: 8px; text-align: center; transition: all 0.3s;">
+                        <div style="font-size: 18px;">🧠</div>
+                        <div style="font-size: 10px; color: #888; margin-top: 2px;">RAM</div>
+                    </div>
+                    <div id="sim-disk" class="sim-level"
+                        style="flex: 1; background: #333; border-radius: 8px; padding: 8px; text-align: center; transition: all 0.3s;">
+                        <div style="font-size: 18px;">💾</div>
+                        <div style="font-size: 10px; color: #888; margin-top: 2px;">Disk</div>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div id="sim-status"
+                    style="background: #0d0d15; border-radius: 8px; padding: 12px; text-align: center; min-height: 50px;">
+                    <span style="color: #4FD8EB; font-size: 12px;">Memulai simulasi...</span>
+                </div>
+            </div>
+
+            <!-- Close Button -->
+            <div style="background: #1a1a2e; padding: 12px 16px; border-top: 1px solid #333;">
+                <button onclick="closeSimulation()" class="btn btn-filled" style="width: 100%;">
+                    <i class="fas fa-times"></i> Tutup Simulasi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Simulation Animations */
+        @keyframes bird-jump {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-30px);
+            }
+        }
+
+        @keyframes bird-fall {
+            0% {
+                transform: translateY(-30px);
+            }
+
+            100% {
+                transform: translateY(10px);
+            }
+        }
+
+        @keyframes pipe-move {
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        @keyframes typing-cursor {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes file-load {
+            0% {
+                width: 0%;
+            }
+
+            100% {
+                width: 100%;
+            }
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 10px currentColor;
+            }
+
+            50% {
+                box-shadow: 0 0 30px currentColor;
+            }
+        }
+
+        @keyframes data-flow {
+            0% {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .sim-level.active {
+            animation: pulse-glow 0.5s ease-in-out;
+        }
+    </style>
+
     <!-- Main Content -->
     <main class="main-container">
         <div class="sidebar-layout">
-            <!-- Sidebar Controls -->
+            <!-- Sidebar - Interactive Scenarios -->
             <aside>
+                <!-- Interactive PC Visual -->
+                <div class="stats-panel" style="margin-bottom: 16px;">
+                    <h3 class="section-title"><i class="fas fa-desktop"></i> Simulasi Aktivitas</h3>
+
+                    <div style="padding: 12px; background: var(--md-surface-container-high); border-radius: 12px;">
+                        <!-- Desktop Computer with Dynamic Screen -->
+                        <div
+                            style="position: relative; padding: 12px; background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 10px; border: 2px solid #44464E;">
+                            <!-- Monitor Frame -->
+                            <div
+                                style="background: #2d2d44; border-radius: 6px; padding: 6px; margin-bottom: 6px; border: 2px solid #555;">
+                                <!-- Dynamic Screen -->
+                                <div id="pc-screen"
+                                    style="background: #0d0d15; border-radius: 4px; height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; font-size: 11px; transition: all 0.3s;">
+                                    <span style="color: #4FD8EB; font-size: 20px;">💻</span>
+                                    <span style="color: #888; font-size: 9px; margin-top: 4px;">Pilih skenario</span>
+                                </div>
+                            </div>
+                            <!-- Monitor Stand -->
+                            <div
+                                style="width: 24px; height: 8px; background: #555; margin: 0 auto; border-radius: 0 0 3px 3px;">
+                            </div>
+                            <div
+                                style="width: 50px; height: 4px; background: #444; margin: 0 auto; border-radius: 2px;">
+                            </div>
+
+                            <!-- Level Indicators -->
+                            <div
+                                style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 10px;">
+                                <div id="ind-reg"
+                                    style="background: #333; border-radius: 3px; padding: 3px 2px; text-align: center; transition: all 0.3s;">
+                                    <div style="font-size: 7px; color: #666;">REG</div>
+                                </div>
+                                <div id="ind-cache"
+                                    style="background: #333; border-radius: 3px; padding: 3px 2px; text-align: center; transition: all 0.3s;">
+                                    <div style="font-size: 7px; color: #666;">CACHE</div>
+                                </div>
+                                <div id="ind-ram"
+                                    style="background: #333; border-radius: 3px; padding: 3px 2px; text-align: center; transition: all 0.3s;">
+                                    <div style="font-size: 7px; color: #666;">RAM</div>
+                                </div>
+                                <div id="ind-disk"
+                                    style="background: #333; border-radius: 3px; padding: 3px 2px; text-align: center; transition: all 0.3s;">
+                                    <div style="font-size: 7px; color: #666;">DISK</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scenario Buttons Grid -->
+                        <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                            <button onclick="runScenario('typing')"
+                                style="background: linear-gradient(135deg, #7B1FA2, #9C27B0); border: none; border-radius: 6px; padding: 8px 4px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <div style="color: white; font-size: 14px;">⌨️</div>
+                                <div style="color: white; font-size: 9px; font-weight: 600;">Ketik Teks</div>
+                            </button>
+                            <button onclick="runScenario('gaming')"
+                                style="background: linear-gradient(135deg, #1976D2, #2196F3); border: none; border-radius: 6px; padding: 8px 4px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <div style="color: white; font-size: 14px;">🎮</div>
+                                <div style="color: white; font-size: 9px; font-weight: 600;">Main Game</div>
+                            </button>
+                            <button onclick="runScenario('openfile')"
+                                style="background: linear-gradient(135deg, #2E7D32, #43A047); border: none; border-radius: 6px; padding: 8px 4px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <div style="color: white; font-size: 14px;">📂</div>
+                                <div style="color: white; font-size: 9px; font-weight: 600;">Buka File</div>
+                            </button>
+                            <button onclick="runScenario('video')"
+                                style="background: linear-gradient(135deg, #E65100, #FB8C00); border: none; border-radius: 6px; padding: 8px 4px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <div style="color: white; font-size: 14px;">🎬</div>
+                                <div style="color: white; font-size: 9px; font-weight: 600;">Edit Video</div>
+                            </button>
+                            <button onclick="runScenario('smalldata')"
+                                style="background: linear-gradient(135deg, #00838F, #00ACC1); border: none; border-radius: 6px; padding: 8px 4px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <div style="color: white; font-size: 14px;">📄</div>
+                                <div style="color: white; font-size: 9px; font-weight: 600;">Data Kecil</div>
+                            </button>
+                            <button onclick="runScenario('bigdata')"
+                                style="background: linear-gradient(135deg, #C2185B, #E91E63); border: none; border-radius: 6px; padding: 8px 4px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <div style="color: white; font-size: 14px;">💾</div>
+                                <div style="color: white; font-size: 9px; font-weight: 600;">Data Besar</div>
+                            </button>
+                        </div>
+
+                        <!-- Status Display -->
+                        <div id="scenario-status"
+                            style="margin-top: 10px; padding: 8px; background: #1a1a2e; border-radius: 6px; text-align: center; min-height: 40px; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: #666; font-size: 10px;">Status: Siap</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compact Speed Reference -->
                 <div class="stats-panel">
-                    <h3 class="section-title"><i class="fas fa-sliders-h"></i> Kontrol Simulasi</h3>
-
-                    <div class="input-group">
-                        <label class="input-label"><i class="fas fa-file"></i> Data Size</label>
-                        <select id="data-size" class="input-field">
-                            <option value="8">8 Bytes (1 Word)</option>
-                            <option value="64">64 Bytes (Cache Line)</option>
-                            <option value="4096" selected>4 KB (Page)</option>
-                            <option value="1048576">1 MB (File)</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
-                        <label class="input-label"><i class="fas fa-crosshairs"></i> Starting Level</label>
-                        <select id="start-level" class="input-field">
-                            <option value="disk">Disk (Cold Start)</option>
-                            <option value="ram">RAM</option>
-                            <option value="cache" selected>Cache</option>
-                            <option value="register">Register</option>
-                        </select>
-                    </div>
-
-                    <button onclick="simulateMemoryAccess()" class="btn btn-filled"
-                        style="width: 100%; margin-bottom: 8px; background: linear-gradient(135deg, #BA68C8, #7B1FA2);">
-                        <i class="fas fa-play"></i>
-                        Simulate Access
-                    </button>
-
-                    <button onclick="resetSimulation()" class="btn btn-outlined" style="width: 100%;">
-                        <i class="fas fa-redo"></i>
-                        Reset
-                    </button>
-
-                    <!-- Stats -->
-                    <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--md-outline-variant);">
-                        <h4
-                            style="font-size: var(--md-label-large); color: var(--md-on-surface-variant); margin-bottom: 12px;">
-                            Access Statistics</h4>
-                        <div class="stats-item">
-                            <span class="stats-label">Total Accesses</span>
-                            <span id="total-accesses" class="stats-value primary">0</span>
-                        </div>
-                        <div class="stats-item">
-                            <span class="stats-label">Cache Hits</span>
-                            <span id="cache-hits" class="stats-value success">0</span>
-                        </div>
-                        <div class="stats-item">
-                            <span class="stats-label">Cache Misses</span>
-                            <span id="cache-misses" class="stats-value error">0</span>
-                        </div>
-                        <div class="stats-item">
-                            <span class="stats-label">Hit Rate</span>
-                            <span id="hit-rate" class="stats-value primary">0%</span>
-                        </div>
-                        <div class="stats-item">
-                            <span class="stats-label">Avg Time</span>
-                            <span id="avg-time" class="stats-value" style="color: var(--md-primary);">0 ns</span>
+                    <h3 class="section-title"><i class="fas fa-tachometer-alt"></i> Kecepatan Akses</h3>
+                    <div style="padding: 10px; background: var(--md-surface-container-high); border-radius: 10px;">
+                        <div style="display: grid; gap: 6px; font-size: 10px;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <div style="width: 8px; height: 8px; background: #BA68C8; border-radius: 2px;"></div>
+                                <span style="color: #BA68C8; flex: 1;">Register</span>
+                                <span style="color: #888;">0.5 ns 🚀</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <div style="width: 8px; height: 8px; background: #64B5F6; border-radius: 2px;"></div>
+                                <span style="color: #64B5F6; flex: 1;">Cache</span>
+                                <span style="color: #888;">1-3 ns ⚡</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <div style="width: 8px; height: 8px; background: #81C784; border-radius: 2px;"></div>
+                                <span style="color: #81C784; flex: 1;">RAM</span>
+                                <span style="color: #888;">100 ns 💨</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <div style="width: 8px; height: 8px; background: #FFB74D; border-radius: 2px;"></div>
+                                <span style="color: #FFB74D; flex: 1;">Disk</span>
+                                <span style="color: #888;">10 ms 🐢</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -551,7 +772,9 @@
     </footer>
 
     <!-- JavaScript -->
-    <script src="js/hierarchy.js"></script>
+    <script src="../js/shared/utils.js"></script>
+    <script src="../js/shared/notifications.js"></script>
+    <script src="../js/pages/hierarchy.js"></script>
 
 </body>
 
